@@ -1,0 +1,148 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - UNICAR Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/datatable/datatables.min.css" asp-append-version="true" />
+
+</head>
+<body class="bg-light">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="bg-dark text-white d-flex flex-column justify-content-between p-3" style="min-width: 220px; height: 100vh;">
+            <div>
+                <div class="text-center mb-4">
+                    <img src="~/images/unicar-logo.png" alt="UNICAR" style="max-width: 100px;">
+                    <h5 class="mt-2">UNICAR</h5>
+                </div>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" asp-controller="Cliente" asp-action="Index">
+                            <i class="bi bi-people"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" asp-controller="Vehiculo" asp-action="Index">
+                            <i class="bi bi-car-front"></i> Vehículos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" asp-controller="Contrato" asp-action="Index">
+                            <i class="bi bi-file-earmark-text"></i> Contratos
+                        </a>
+                    </li>
+                </ul>
+                }
+            </div>
+               
+            <div class="dropdown">
+                <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" href="#" role="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-2" style="font-size: 1.5rem;"></i>
+
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <span>@User.Identity.Name</span>
+                    }
+                    else
+                    {
+                        <span>Cuenta</span>
+                    }
+                    
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="userMenu">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <li>
+                            <form asp-area="Identity" asp-page="/Account/Logout" method="post">
+                                <button type="submit" class="dropdown-item">Cerrar sesión</button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li>
+                            <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Login">Iniciar sesión</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Register">Registrarse</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <div class="flex-grow-1">
+            <main class="container-fluid p-4">
+                @RenderBody()
+            </main>
+
+            <footer class="bg-light text-center py-3 border-top">
+                <small>&copy; 2025 - UNICAR</small>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modal Global Reutilizable -->
+    <div class="modal fade" id="modalGlobal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Aquí se cargará el contenido dinámico -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/datatables.min.js"></script>
+
+    <script>
+        function abrirModal(tamano, titulo, url) {
+            const modal = $('#modalGlobal');
+            const dialog = modal.find('.modal-dialog');
+
+            // Quita cualquier tamaño previo
+            dialog.removeClass('modal-sm modal-md modal-lg');
+
+            // Aplica el tamaño
+            if (tamano === 'sm') dialog.addClass('modal-sm');
+            else if (tamano === 'md') dialog.addClass('modal-md');
+            else if (tamano === 'lg') dialog.addClass('modal-lg');
+
+            // Asigna el título
+            modal.find('.modal-title').text(titulo);
+
+            // Carga el contenido desde la URL
+            $.get(url, function (html) {
+                modal.find('.modal-body').html(html);
+                modal.modal('show');
+            });
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

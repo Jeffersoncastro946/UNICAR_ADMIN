@@ -1,0 +1,63 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.CrearVehiculoDTO
+<h5>Datos del Vehículo</h5>
+<div class="row mb-3">
+    <div class="col">
+        <label asp-for="Marca"></label>
+        <input asp-for="Marca" class="form-control" />
+        <span asp-validation-for="Marca" class="text-danger"></span>
+    </div>
+    <div class="col">
+        <label asp-for="Modelo"></label>
+        <input asp-for="Modelo" class="form-control" />
+        <span asp-validation-for="Modelo" class="text-danger"></span>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col">
+        <label asp-for="Anio"></label>
+        <input asp-for="Anio" class="form-control" />
+        <span asp-validation-for="Anio" class="text-danger"></span>
+    </div>
+    <div class="col">
+        <label asp-for="Color"></label>
+        <input asp-for="Color" class="form-control" />
+        <span asp-validation-for="Color" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">
+        <label asp-for="estadoId"></label>
+        <select asp-for="estadoId" asp-items="Model.ListaEstados" class="form-control"></select>
+        <span asp-validation-for="estadoId" class="text-danger"></span>
+
+    </div>
+    <div class="col">
+        <label asp-for="VIN"></label>
+        <input asp-for="VIN" class="form-control" />
+        <span asp-validation-for="VIN" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="row mb-3 align-items-end">
+    <!-- Columna grande para Precio -->
+    <div class="col-md-6">
+        <label asp-for="Precio" class="form-label"></label>
+        <input asp-for="Precio" class="form-control" />
+        <span asp-validation-for="Precio" class="text-danger"></span>
+    </div>
+
+    <!-- Columna pequeña para el checkbox -->
+    <div class="col-md-3">
+        <div class="form-check mt-3">
+            <input asp-for="EsConsignacion" class="form-check-input" />
+            <label asp-for="EsConsignacion" class="form-check-label"></label>
+            <span asp-validation-for="EsConsignacion" class="text-danger"></span>
+        </div>
+    </div>
+</div>
+
+
+
+
+<a class="btn btn-primary" data-bs-toggle="list" href="#paso2">Siguiente</a>

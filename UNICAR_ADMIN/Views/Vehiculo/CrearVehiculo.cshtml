@@ -1,0 +1,251 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.CrearVehiculoDTO
+
+@{
+    ViewData["Title"] = "Crear Vehiculo";
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var kvp in ViewData.ModelState)
+            {
+                foreach (var error in kvp.Value.Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
+}
+
+<form asp-action="CrearVehiculo" asp-controller="Vehiculo" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="container py-5">
+        <h3 class="mb-4 text-center">Registrar Vehículo</h3>
+
+        <div class="card shadow-lg rounded-4 p-4 bg-white w-100 col-xl-10 col-lg-11">
+
+            <div class="row">
+                <!-- Stepper izquierdo -->
+                <div class="col-md-3">
+                    <div class="list-group stepper">
+                        <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#paso1">
+                            <i class="bi bi-car-front me-2"></i> Datos del Vehículo
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#paso2">
+                            <i class="bi bi-images me-2"></i> Imágenes
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#paso3">
+                            <i class="bi bi-truck me-2"></i> Proveedor
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contenido de los pasos -->
+                <div class="col-md-9">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="paso1">
+                            @await Html.PartialAsync("vistasParciales/_VehicleData", Model)
+                        </div>
+
+                        <div class="tab-pane fade" id="paso2">
+                            @await Html.PartialAsync("vistasParciales/_ImageUpload", Model)
+                        </div>
+
+                        <div class="tab-pane fade" id="paso3">
+                            @await Html.PartialAsync("vistasParciales/_ProveedorSection", Model)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+
+
+
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+
+            // 1) Selecciona el "Siguiente" que está dentro de #paso1
+            const btnPaso1 = document.querySelector('#paso1 a[data-bs-toggle="list"]');
+            if (btnPaso1) {
+                btnPaso1.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const navPaso2 = document.querySelector('.list-group a[href="#paso2"]');
+                    if (navPaso2) {
+                        bootstrap.Tab.getOrCreateInstance(navPaso2).show();
+                    }
+                });
+            }
+
+            // 2) Selecciona el "Siguiente" que está dentro de #paso2
+            const btnPaso2 = document.querySelector('#paso2 a[data-bs-toggle="list"]');
+            if (btnPaso2) {
+                btnPaso2.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const navPaso3 = document.querySelector('.list-group a[href="#paso3"]');
+                    if (navPaso3) {
+                        bootstrap.Tab.getOrCreateInstance(navPaso3).show();
+                    }
+                });
+            }
+
+            // Llenamos dropdowns y datos del proveedor
+            cargarProveedores();
+           // cargarDatosProveedor();
+
+            // Configuramos las vistas previas de todas las imágenes
+            setupImagePreview('FotoFrontalFile', 'preview-FotoFrontal');
+            setupImagePreview('FotoTraseraFile', 'preview-FotoTrasera');
+            setupImagePreview('FotoLateralIzquierdaFile', 'preview-FotoLateralIzquierda');
+            setupImagePreview('FotoLateralDerechaFile', 'preview-FotoLateralDerecha');
+            setupImagePreview('FotoInterior1File', 'preview-FotoInterior1');
+            setupImagePreview('FotoInterior2File', 'preview-FotoInterior2');
+            setupImagePreview('FotoMotorFile', 'preview-FotoMotor');
+            setupImagePreview('FotoExtra1File', 'preview-FotoExtra1');
+            setupImagePreview('FotoExtra2File', 'preview-FotoExtra2');
+        });
+
+                function cargarProveedores() {
+          const $sel = $('#ProveedorId');
+          if (!$sel.length) return;
+
+          fetch('/Proveedor/ObtenerProveedoresSelectItem')
+            .then(r => r.json())
+            .then(data => {
+              // 1) Llena el dropdown
+              $sel.empty().append('<option value="">Seleccione proveedor</option>');
+              data.forEach(p => {
+                $sel.append(`<option value="${p.value}">${p.text}</option>`);
+              });
+
+              // 2) Inicializa o refresca Select2
+              if ($.fn.select2) {
+                if ($sel.hasClass('select2-hidden-accessible')) {
+                  $sel.trigger('change.select2');
+                } else {
+                  $sel.select2({
+                    placeholder: 'Seleccione proveedor por favor',
+                    allowClear: true,
+                    width: '100%',
+                    // dropdownParent: $('#myModal') // si fuera dentro de un modal
+                  });
+                }
+              }
+
+              // 3) Ahora sí engancha el listener para traer datos
+              bindCargarDatosProveedor();
+            })
+            .catch(err => console.error('Error al cargar proveedores:', err));
+        }
+
+        function bindCargarDatosProveedor() {
+          const $sel = $('#ProveedorId');
+          if (!$sel.length) return;
+
+          // removemos cualquier handler anterior con namespace `.prov`
+          $sel.off('.prov')
+              .on('change.prov select2:select.prov', function () {
+                const id = $(this).val();
+                if (!id) {
+                  // limpias campos si no hay selección
+                  $('#txtNombreProv, #txtTelefonoProv, #txtCorreoProv, #txtDireccionProv')
+                    .val('');
+                  return;
+                }
+
+                fetch(`/Proveedor/ObtenerProveedoresPorID/${id}`)
+                  .then(r => r.json())
+                  .then(data => {
+                    const prov = data[0] || {};
+                    $('#txtNombreProv').val(prov.nombre || '');
+                    $('#txtTelefonoProv').val(prov.telefono || '');
+                    $('#txtCorreoProv').val(prov.correo || '');
+                    $('#txtDireccionProv').val(prov.direccion || '');
+                  })
+                  .catch(err => console.error('Error al obtener datos del proveedor:', err));
+              });
+        }
+
+        // function cargarProveedores() {
+        //     const selectProveedor = document.getElementById("ProveedorId");
+        //     if (!selectProveedor) return;
+
+        //     fetch('/Proveedor/ObtenerProveedoresSelectItem')
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             // selectProveedor.innerHTML = '<option value="">Seleccione proveedor</option>';
+        //             data.forEach(p => {
+        //                 const option = document.createElement('option');
+        //                 option.value = p.value;
+        //                 option.textContent = p.text;
+        //                 selectProveedor.appendChild(option);
+        //             });
+
+        //             // Inicializar Select2 después de cargar las opciones
+        //             if (window.$ && $.fn.select2) {
+        //                 $('#ProveedorId').select2({
+        //                     placeholder: 'Seleccione proveedor por favor',
+        //                     allowClear: true,
+        //                     width: '100%',
+        //                 });
+        //             }
+        //         })
+        //         .catch(err => console.error('Error al cargar proveedores:', err));
+        // }
+
+        // function cargarDatosProveedor() {
+        //     const selectProveedor = document.getElementById("ProveedorId");
+        //     if (!selectProveedor) return;
+
+        //     selectProveedor.addEventListener('change', function () {
+        //         const id = this.value;
+        //         if (!id) {
+        //             // Limpiar campos
+        //             ['txtNombreProv','txtTelefonoProv','txtCorreoProv','txtDireccionProv']
+        //               .forEach(cid => document.getElementById(cid).value = '');
+        //             return;
+        //         }
+
+        //         fetch(`/Proveedor/ObtenerProveedoresPorID/${id}`)
+        //             .then(resp => resp.json())
+        //             .then(data => {
+        //                 document.getElementById("txtNombreProv").value    = data[0]?.nombre    || '';
+        //                 document.getElementById("txtTelefonoProv").value = data[0]?.telefono  || '';
+        //                 document.getElementById("txtCorreoProv").value   = data[0]?.correo    || '';
+        //                 document.getElementById("txtDireccionProv").value= data[0]?.direccion || '';
+        //             })
+        //             .catch(err => console.error('Error al obtener datos del proveedor:', err));
+        //     });
+        // }
+
+        function setupImagePreview(inputId, imgPreviewId) {
+            const input = document.getElementById(inputId);
+            const img   = document.getElementById(imgPreviewId);
+            if (!input || !img) return;
+
+            input.addEventListener('change', () => {
+                const file = input.files?.[0];
+                if (file) {
+                    const url = URL.createObjectURL(file);
+                    img.src = url;
+                    img.style.display = 'block';
+                } else {
+                    img.src = '';
+                    img.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}

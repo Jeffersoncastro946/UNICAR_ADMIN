@@ -1,0 +1,244 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - UNICAR Admin</title>
+
+    <!-- Bootstrap CSS primero -->
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+          asp-append-version="true" />
+    <link rel="stylesheet"
+          href="~/css/datatables.min.css "
+          asp-append-version="true" />
+
+    <!-- Íconos -->
+    <link rel="stylesheet"
+          href="~/lib/bootstrap-icons/font/bootstrap-icons.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/datatable/Tabla.css" asp-append-version="true" />
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+</head>
+<body class="bg-light">
+    <div class="d-flex vh-100">
+        <!-- Barra lateral -->
+        <nav id="sidebarMenu" class="bg-dark text-white d-flex flex-column p-2 flex-shrink-0" style="width: 16rem;">
+
+            <!-- 1) Botón para colapsar/expandir -->
+            <button id="sidebarToggle" class="btn btn-sm btn-outline-light mb-3 align-self-end">
+                <i class="bi bi-chevron-bar-left"></i>
+            </button>
+
+            <!-- 2) Branding -->
+            <div class="sidebar-brand d-flex align-items-center mb-4">
+                <img src="~/images/unicar-logo.png" alt="" style="width:2rem" />
+                <span class="ms-2 sidebar-brand-text">UNICAR</span>
+            </div>
+
+            <!-- 3) Menú principal con submenús -->
+            <div class="collapse d-md-block" id="sidebarContent">
+                <ul class="nav nav-pills flex-column">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <!-- Módulo Inicio -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house"></i>
+                                <span class="ms-2 sidebar-text">Inicio</span>
+                            </a>
+                        </li>
+
+                        <!-- Módulo Clientes con Submenú -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                               data-bs-toggle="collapse" href="#clienteSubmenu" role="button" aria-expanded="false" aria-controls="clienteSubmenu">
+                                <span>
+                                    <i class="bi bi-people"></i>
+                                    <span class="ms-2 sidebar-text">Clientes</span>
+                                </span>
+                                <i class="bi bi-chevron-down small"></i>
+                            </a>
+                            <div class="collapse" id="clienteSubmenu">
+                                <ul class="nav flex-column ms-4">
+                                    <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Cliente" asp-action="Index">
+                                            <i class="bi bi-list"></i>
+                                            <span class="ms-2 sidebar-text">Listar Clientes</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Cliente" asp-action="CrearCliente">
+                                            <i class="bi bi-plus-circle"></i>
+                                            <span class="ms-2 sidebar-text">Crear Cliente</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <!-- Módulo Vehículos con Submenú -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                               data-bs-toggle="collapse" href="#vehiculoSubmenu" role="button" aria-expanded="false" aria-controls="vehiculoSubmenu">
+                                <span>
+                                    <i class="bi bi-car-front"></i>
+                                    <span class="ms-2 sidebar-text">Vehículos</span>
+                                </span>
+                                <i class="bi bi-chevron-down small"></i>
+                            </a>
+                            <div class="collapse" id="vehiculoSubmenu">
+                                <ul class="nav flex-column ms-4">
+                                    <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Vehiculo" asp-action="Index">
+                                            <i class="bi bi-list"></i>
+                                            <span class="ms-2 sidebar-text">Listar Vehículos</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Vehiculo" asp-action="CrearVehiculo">
+                                            <i class="bi bi-plus-circle"></i>
+                                            <span class="ms-2 sidebar-text">Crear Vehículo</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <!-- Módulo Mantenimiento con Submenú -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                               data-bs-toggle="collapse" href="#ReparacionSubmenu" role="button" aria-expanded="false" aria-controls="ReparacionSubmenu">
+                                <span>
+                                    <i class="bi bi-tools"></i>
+                                    <span class="ms-2 sidebar-text">Mantenimientos</span>
+                                </span>
+                                <i class="bi bi-chevron-down small"></i>
+                            </a>
+                            <div class="collapse" id="ReparacionSubmenu">
+                                <ul class="nav flex-column ms-4">
+                                    <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Vehiculo" asp-action="ListarReparaciones">
+                                            <i class="bi bi-list"></i>
+                                            <span class="ms-2 sidebar-text">Listar Reparaciones</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Vehiculo" asp-action="CrearReparacion">
+                                            <i class="bi bi-plus-circle"></i>
+                                            <span class="ms-2 sidebar-text">Agregar reparacion a Vehiculo</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <!-- Módulo Contratos con Submenú -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                               data-bs-toggle="collapse" href="#contratoSubmenu" role="button" aria-expanded="false" aria-controls="contratoSubmenu">
+                                <span>
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    <span class="ms-2 sidebar-text">Contratos</span>
+                                </span>
+                                <i class="bi bi-chevron-down small"></i>
+                            </a>
+                            <div class="collapse" id="contratoSubmenu">
+                                <ul class="nav flex-column ms-4">
+                                    <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Contrato" asp-action="Index">
+                                            <i class="bi bi-list"></i>
+                                            <span class="ms-2 sidebar-text">Listar Contratos</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Contrato" asp-action="CrearContrato">
+                                            <i class="bi bi-plus-circle"></i>
+                                            <span class="ms-2 sidebar-text">Crear Contrato</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <!-- Agregar más módulos según sea necesario -->
+                    }
+                </ul>
+            </div>
+
+            <!-- 4) Menú de cuenta siempre abajo -->
+            <div class="mt-auto">
+                <div class="dropdown">
+                    <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                       href="#" id="userMenu" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-2" style="font-size:1.5rem"></i>
+                        <span class="sidebar-text">
+                            @(User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Cuenta")
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="userMenu">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <li>
+                                <form asp-area="Identity" asp-page="/Account/Logout" method="post" asp-route-returnUrl="@Url.Action("Index","Home")">
+                                    <button type="submit" class="dropdown-item">Cerrar sesión</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Login">Iniciar sesión</a></li>
+                            <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Register">Registrarse</a></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <div class="flex-grow-1 d-flex flex-column">
+            <main class="flex-grow-1 overflow-auto p-4">
+                @RenderBody()
+            </main>
+            <footer class="bg-light text-center py-3 border-top">
+                <small>&copy; 2025 - UNICAR</small>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index:1050;"></div>
+
+    <!-- Modal Global Reutilizable -->
+    <div class="modal fade" id="modalGlobal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Aquí se cargará el contenido dinámico -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/datatables.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="~/js/site.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>
+

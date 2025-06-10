@@ -1,0 +1,81 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.CrearVehiculoDTO
+
+<form id="formEditarVehiculo"
+      asp-action="EditarVehiculo"
+      method="post"
+      enctype="multipart/form-data"
+      class="row g-3">
+    <input type="hidden" asp-for="VehiculoId" />
+
+    <!-- 1) Marca & Modelo -->
+    <div class="col-md-6">
+        <label asp-for="Marca" class="form-label"></label>
+        <input asp-for="Marca" class="form-control" />
+        <span asp-validation-for="Marca" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Modelo" class="form-label"></label>
+        <input asp-for="Modelo" class="form-control" />
+        <span asp-validation-for="Modelo" class="text-danger"></span>
+    </div>
+
+    <!-- 2) VIN -->
+    <div class="col-md-6">
+        <label asp-for="VIN" class="form-label"></label>
+        <input asp-for="VIN" class="form-control" />
+        <span asp-validation-for="VIN" class="text-danger"></span>
+    </div>
+
+    <!-- 3) Año & Color -->
+    <div class="col-md-3">
+        <label asp-for="Anio" class="form-label"></label>
+        <input asp-for="Anio" class="form-control" />
+        <span asp-validation-for="Anio" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Color" class="form-label"></label>
+        <input asp-for="Color" class="form-control" />
+        <span asp-validation-for="Color" class="text-danger"></span>
+    </div>
+
+    <!-- 4) Precio & Consignación -->
+    <div class="col-md-6">
+        <label asp-for="Precio" class="form-label"></label>
+        <input asp-for="Precio" class="form-control" />
+        <span asp-validation-for="Precio" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 d-flex align-items-center">
+        <div class="form-check">
+            <input asp-for="EsConsignacion" class="form-check-input" />
+            <label asp-for="EsConsignacion" class="form-check-label ms-2"></label>
+        </div>
+    </div>
+
+    <!-- 5) Estado & Proveedor -->
+    <div class="col-md-6">
+        <label asp-for="estadoId" class="form-label">Estado</label>
+        <select asp-for="estadoId"
+                asp-items="Model.ListaEstados"
+                class="form-select">
+        </select>
+        <span asp-validation-for="estadoId" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="ProveedorId" class="form-label">Proveedor</label>
+        <select asp-for="ProveedorId"
+                asp-items="Model.ListaProveedores"
+                class="form-select">
+        </select>
+        <span asp-validation-for="ProveedorId" class="text-danger"></span>
+    </div>
+
+    <!-- 6) Botones al final, alineados a la derecha -->
+    <div class="col-12 text-end">
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-save me-1"></i> Guardar cambios
+        </button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">
+            <i class="bi bi-x-circle me-1"></i> Cancelar
+        </a>
+    </div>
+</form>

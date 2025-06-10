@@ -1,0 +1,70 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.CrearVehiculoDTO
+<h5>Subir Imágenes</h5>
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoFrontalFile"></label>
+        <input asp-for="FotoFrontalFile" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoFrontal" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoTraseraFile"></label>
+        <input asp-for="FotoTraseraFile" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoTrasera" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoLateralIzquierdaFile"></label>
+        <input asp-for="FotoLateralIzquierdaFile" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoLateralIzquierda" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoLateralDerechaFile"></label>
+        <input asp-for="FotoLateralDerechaFile" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoLateralDerecha" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoInterior1File"></label>
+        <input asp-for="FotoInterior1File" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoInterior1" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoInterior2File"></label>
+        <input asp-for="FotoInterior2File" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoInterior2" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoMotorFile"></label>
+        <input asp-for="FotoMotorFile" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoMotor" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoExtra1File"></label>
+        <input asp-for="FotoExtra1File" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoExtra1" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div>   
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoExtra2File"></label>
+        <input asp-for="FotoExtra2File" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoExtra2" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div>
+</div>
+<a class="btn btn-primary" data-bs-toggle="list" href="#paso3">Siguiente</a>

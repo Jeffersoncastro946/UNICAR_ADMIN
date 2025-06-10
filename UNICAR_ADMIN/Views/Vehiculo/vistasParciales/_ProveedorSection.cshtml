@@ -1,0 +1,50 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.CrearVehiculoDTO
+
+ <!-- 3) Botón para abrir modal de “Nuevo Proveedor” (solo un iconito +) -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="m-0">Datos del Proveedor</h5>
+    <!-- Botón “+” en la esquina superior derecha -->
+    <button type="button"
+            class="btn btn-outline-primary"
+            style="width: 40px; height: 40px; padding: 0;"
+            onclick="abrirModal('md','Nuevo Proveedor','/Proveedor/CrearProveedor')"
+            title="Nuevo proveedor">
+        <i class="bi bi-plus" style="font-size: 1.2rem;"></i>
+    </button>
+</div>
+<!-- 1) Dropdown con proveedores existentes -->
+<label asp-for="ProveedorId"></label>
+<select asp-for="ProveedorId" asp-items="Model.ListaProveedores" class="form-select form-control">
+    <option value="">--CARGANDO --</option>
+</select>
+
+<!-- 2) Campos de datos del proveedor (ahora siempre visibles) -->
+<div id="contenedorDatosProveedor">
+    <div class="mb-2">
+        <label class="form-label">Nombre:</label>
+        <input type="text" id="txtNombreProv" class="form-control" readonly placeholder="Aquí aparecerá el nombre del proveedor" />
+    </div>
+    <div class="row mb-2">
+        <div class="col">
+            <label class="form-label">Teléfono:</label>
+            <input type="text" id="txtTelefonoProv" class="form-control" readonly placeholder="Aquí aparecerá el teléfono" />
+        </div>
+        <div class="col">
+            <label class="form-label">Correo:</label>
+            <input type="text" id="txtCorreoProv" class="form-control" readonly placeholder="Aquí aparecerá el correo" />
+        </div>
+    </div>
+    <div class="mb-2">
+        <label class="form-label">Dirección:</label>
+        <textarea id="txtDireccionProv" class="form-control" rows="2" readonly placeholder="Aquí aparecerá la dirección"></textarea>
+    </div>
+</div>
+
+
+
+<!-- Botón de envío -->
+<div class="text-end mt-4">
+    <button type="submit" class="btn btn-outline-success rounded-pill px-4">
+        <i class="bi bi-save me-1"></i> Guardar Vehículo
+    </button>
+</div>

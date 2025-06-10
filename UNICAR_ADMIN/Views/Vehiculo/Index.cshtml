@@ -1,0 +1,268 @@
+﻿@model IEnumerable<UNICAR_ADMIN.Models.DTOS.ListaVehiculoDTO>
+
+@{
+    ViewData["Title"] = "Lista de vehículos";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-dark">Vehículos Registrados</h2>
+        <a asp-controller="Vehiculo" asp-action="CrearVehiculo" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Vehículo
+        </a>
+    </div>
+
+    <div class="table-responsive shadow-sm">
+
+        <table id="Tabla" class="table table-bordered table-hover " style="min-width:800px%">
+            <thead >
+                <tr>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Año</th>
+                    <th>Color</th>
+                    <th>Vin</th>
+                    <th>Precio</th>
+                    <th>Estado</th>
+                    <th>Consignación</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+
+
+@* @section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#Tabla').DataTable({
+                ajax: {
+                    url: '@Url.Action("ObtenerVehiculos", "Vehiculo")',
+                    dataSrc: 'data'
+                },
+                columns: [
+                    { data: d => d.marca },
+                    { data: d => d.modelo },
+                    { data: d => d.anio },
+                    { data: d => d.color },
+                    { data: d => d.vin },
+                    {
+                        data: d => d.precio,
+                        render: $.fn.dataTable.render.number('.', ',', 2, 'L. ')
+                    },
+                    { data: d => d.estado,
+                        render: d => `<span class="badge bg-info text-white">${d}</span>`
+                    },
+                    {
+                        data: d => d.esConsignacion,
+                            render: v => v
+                            // Con Bootstrap Icons:
+                            ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                            : '<i class="bi bi-x-circle-fill text-danger"></i>'
+                    },
+                    {
+                        data: d => d.vehiculoId,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: id => `
+                             <button class="btn btn-sm btn-warning me-1"
+                                onclick="abrirModal('lg','Editar Vehículo','/Vehiculo/EditarVehiculo/${id}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                             <button class="btn btn-sm btn-danger me-1"
+                                onclick="abrirModal('sm','Editar Vehículo','/Vehiculo/BorrarVehiculo/${id}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            `
+                    }
+                ],
+                responsive: true,
+                language: {
+                    lengthMenu: 'Mostrar _MENU_ registros por página',
+                    zeroRecords: 'No se encontraron registros',
+                    info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+                    infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+                    infoFiltered: '(filtrado de _MAX_ registros totales)',
+                    search: 'Buscar:',
+                    loadingRecords: 'Cargando...',
+                    processing: 'Procesando...',
+                    paginate: {
+                        first: 'Primero',
+                        last: 'Último',
+                        next: 'Siguiente',
+                        previous: 'Anterior'
+                    },
+                    decimal: ',',
+                    thousands: '.'
+
+                }
+            });
+
+        });
+    </script>
+}
+ *@
+ @section Scripts {
+    <script>
+    $(function () {
+
+        //inicailizar drops
+        $('#ProveedorId').select2({
+          dropdownParent: $('#modalGlobal'),
+          placeholder: 'Select an option'
+        });
+        // 1) Inicializa la DataTable y la guardamos en window.vehiculosTable
+        window.vehiculosTable = $('#Tabla').DataTable({
+            ajax: {
+                url: '@Url.Action("ObtenerVehiculos", "Vehiculo")',
+                dataSrc: 'data'
+            },
+            columns: [
+                { data: d => d.marca },
+                { data: d => d.modelo },
+                { data: d => d.anio },
+                { data: d => d.color },
+                { data: d => d.vin },
+                {
+                    data: d => d.precio,
+                    render: $.fn.dataTable.render.number('.', ',', 2, 'L. ')
+                },
+                {
+                    data: d => d.estado,
+                    render: d => `<span class="badge bg-info text-white">${d}</span>`
+                },
+                {
+                    data: d => d.esConsignacion,
+                    render: v =>
+                        v
+                        ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                        : '<i class="bi bi-x-circle-fill text-danger"></i>'
+                },
+                {
+                    data: d => d.vehiculoId,
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: id => `
+                        <button class="btn btn-sm btn-warning me-1"
+                                onclick="abrirModal('lg','Editar Vehículo','/Vehiculo/EditarVehiculo/${id}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger"
+                                onclick="abrirModal('sm','Eliminar Vehículo','/Vehiculo/BorrarVehiculo/${id}')">
+                            <i class="bi bi-trash"></i>
+                        </button>`
+                }
+            ],
+            responsive: true,
+            language: {
+                lengthMenu: 'Mostrar _MENU_ registros por página',
+                zeroRecords: 'No se encontraron registros',
+                info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+                infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+                infoFiltered: '(filtrado de _MAX_ registros totales)',
+                search: 'Buscar:',
+                loadingRecords: 'Cargando...',
+                processing: 'Procesando...',
+                paginate: {
+                    first: 'Primero',
+                    last: 'Último',
+                    next: 'Siguiente',
+                    previous: 'Anterior'
+                },
+                decimal: ',',
+                thousands: '.'
+            }
+        });
+
+        // 2) Delegación del submit por AJAX para el formulario de edición
+        $(document).on('submit', '#formEditarVehiculo', function (e) {
+            e.preventDefault();
+            var $form = $(this);
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    // Limpia cualquier alerta previa
+                    $('#alertContainer').empty();
+
+                    // Elige la clase según éxito o error
+                    var tipo = res.success ? 'success' : 'danger';
+                    var alertHtml = `
+                        <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                            ${res.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>`;
+
+                    // Inserta la alerta
+                    $('#alertContainer').append(alertHtml);
+
+                    if (res.success) {
+                        // Cierra el modal y recarga la tabla sin resetear la página
+                        $('#modalGlobal').modal('hide');
+                        window.vehiculosTable.ajax.reload(null, false);
+                    }
+                },
+                error: function () {
+                    $('#alertContainer').html(`
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            Error inesperado. Intenta de nuevo.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>`);
+                }
+            });
+            }); //fin submit
+                        // 2) Delegación del submit por AJAX para el formulario de edición
+                $(document).on('submit', '#formEliminarVehiculo', function (e) {
+                e.preventDefault();
+                var $form = $(this);
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        // Limpia cualquier alerta previa
+                        $('#alertContainer').empty();
+
+                        // Elige la clase según éxito o error
+                        var tipo = res.success ? 'success' : 'danger';
+                        var alertHtml = `
+                            <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                                ${res.message}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                            </div>`;
+
+                        // Inserta la alerta
+                        $('#alertContainer').append(alertHtml);
+
+                        if (res.success) {
+                            // Cierra el modal y recarga la tabla sin resetear la página
+                            $('#modalGlobal').modal('hide');
+                            window.vehiculosTable.ajax.reload(null, false);
+                        }
+                    },
+                    error: function () {
+                        $('#alertContainer').html(`
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                Error inesperado. Intenta de nuevo.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                            </div>`);
+                    }
+                });
+                }); //fin submit
+    });
+    </script>
+}
