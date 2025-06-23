@@ -7,13 +7,11 @@ public partial class Reparacione
 {
     public int ReparacionId { get; set; }
 
-    public int? VehiculoId { get; set; }
+    public int VehiculoId { get; set; }
 
     public string? Descripcion { get; set; }
 
     public decimal? Costo { get; set; }
-
-    public DateTime? FechaReparacion { get; set; }
 
     public string? ImagenUrl { get; set; }
 
@@ -25,5 +23,13 @@ public partial class Reparacione
 
     public string? UsuarioModificacion { get; set; }
 
-    public virtual Vehiculo? Vehiculo { get; set; }
+    public bool? Activo { get; set; }
+
+    public DateTime FechaInicial { get; set; }
+
+    public DateTime FechaFinal { get; set; }
+
+    public string Responsable { get; set; } = null!;
+
+    public virtual Vehiculo Vehiculo { get; set; } = null!;
 }

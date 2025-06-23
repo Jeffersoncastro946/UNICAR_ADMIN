@@ -19,11 +19,26 @@
     </div>
 }
 
-<form asp-action="CrearVehiculo" asp-controller="Vehiculo" method="post" enctype="multipart/form-data">
-    <div asp-validation-summary="All" class="text-danger"></div>
+<form asp-action="@ViewBag.action" asp-controller="Vehiculo" method="post" enctype="multipart/form-data">
+  @*   <div asp-validation-summary="All" class="text-danger"></div> *@
 
     <div class="container py-5">
-        <h3 class="mb-4 text-center">Registrar Vehículo</h3>
+        <!-- Título + botón Volver -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-1 d-none d-md-block"><!-- hueco lateral --></div>
+
+            <!-- Título centrado -->
+            <div class="col-6 col-md-9 text-center">
+                <h3 class="mb-0">@ViewBag.TitleForm</h3>
+            </div>
+
+            <!-- Botón a la derecha -->
+            <div class="col-6 col-md-2 text-center">
+                <a asp-action="Index" asp-controller="Vehiculo" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al listado
+                </a>
+            </div>
+        </div>
 
         <div class="card shadow-lg rounded-4 p-4 bg-white w-100 col-xl-10 col-lg-11">
 
@@ -116,39 +131,33 @@
             setupImagePreview('FotoExtra1File', 'preview-FotoExtra1');
             setupImagePreview('FotoExtra2File', 'preview-FotoExtra2');
         });
-
                 function cargarProveedores() {
           const $sel = $('#ProveedorId');
           if (!$sel.length) return;
 
+          // Leemos el id que queremos marcar
+          const selectedId = $sel.data('selected-id') + '';
+
           fetch('/Proveedor/ObtenerProveedoresSelectItem')
             .then(r => r.json())
             .then(data => {
-              // 1) Llena el dropdown
               $sel.empty().append('<option value="">Seleccione proveedor</option>');
               data.forEach(p => {
-                $sel.append(`<option value="${p.value}">${p.text}</option>`);
+                // si coincide, setea selected
+                const isSel = p.value === selectedId ? ' selected' : '';
+                $sel.append(`<option value="${p.value}"${isSel}>${p.text}</option>`);
               });
 
-              // 2) Inicializa o refresca Select2
+              // Inicializa Select2, etc
               if ($.fn.select2) {
-                if ($sel.hasClass('select2-hidden-accessible')) {
-                  $sel.trigger('change.select2');
-                } else {
-                  $sel.select2({
-                    placeholder: 'Seleccione proveedor por favor',
-                    allowClear: true,
-                    width: '100%',
-                    // dropdownParent: $('#myModal') // si fuera dentro de un modal
-                  });
-                }
+                $sel.select2({  allowClear: true,
+                    width: '100%', });
               }
 
-              // 3) Ahora sí engancha el listener para traer datos
               bindCargarDatosProveedor();
-            })
-            .catch(err => console.error('Error al cargar proveedores:', err));
+            });
         }
+
 
         function bindCargarDatosProveedor() {
           const $sel = $('#ProveedorId');
@@ -177,58 +186,6 @@
                   .catch(err => console.error('Error al obtener datos del proveedor:', err));
               });
         }
-
-        // function cargarProveedores() {
-        //     const selectProveedor = document.getElementById("ProveedorId");
-        //     if (!selectProveedor) return;
-
-        //     fetch('/Proveedor/ObtenerProveedoresSelectItem')
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             // selectProveedor.innerHTML = '<option value="">Seleccione proveedor</option>';
-        //             data.forEach(p => {
-        //                 const option = document.createElement('option');
-        //                 option.value = p.value;
-        //                 option.textContent = p.text;
-        //                 selectProveedor.appendChild(option);
-        //             });
-
-        //             // Inicializar Select2 después de cargar las opciones
-        //             if (window.$ && $.fn.select2) {
-        //                 $('#ProveedorId').select2({
-        //                     placeholder: 'Seleccione proveedor por favor',
-        //                     allowClear: true,
-        //                     width: '100%',
-        //                 });
-        //             }
-        //         })
-        //         .catch(err => console.error('Error al cargar proveedores:', err));
-        // }
-
-        // function cargarDatosProveedor() {
-        //     const selectProveedor = document.getElementById("ProveedorId");
-        //     if (!selectProveedor) return;
-
-        //     selectProveedor.addEventListener('change', function () {
-        //         const id = this.value;
-        //         if (!id) {
-        //             // Limpiar campos
-        //             ['txtNombreProv','txtTelefonoProv','txtCorreoProv','txtDireccionProv']
-        //               .forEach(cid => document.getElementById(cid).value = '');
-        //             return;
-        //         }
-
-        //         fetch(`/Proveedor/ObtenerProveedoresPorID/${id}`)
-        //             .then(resp => resp.json())
-        //             .then(data => {
-        //                 document.getElementById("txtNombreProv").value    = data[0]?.nombre    || '';
-        //                 document.getElementById("txtTelefonoProv").value = data[0]?.telefono  || '';
-        //                 document.getElementById("txtCorreoProv").value   = data[0]?.correo    || '';
-        //                 document.getElementById("txtDireccionProv").value= data[0]?.direccion || '';
-        //             })
-        //             .catch(err => console.error('Error al obtener datos del proveedor:', err));
-        //     });
-        // }
 
         function setupImagePreview(inputId, imgPreviewId) {
             const input = document.getElementById(inputId);

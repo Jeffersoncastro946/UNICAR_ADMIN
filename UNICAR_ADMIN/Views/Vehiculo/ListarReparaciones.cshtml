@@ -1,0 +1,226 @@
+﻿@model IEnumerable<UNICAR_ADMIN.Models.DTOS.ReparacionesDTO>
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+<!-- Alert Container -->
+<div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1080; width: auto; max-width: 350px;">
+    <!-- Aquí se inyectarán las alertas -->
+</div>
+
+<div class="container mt-4">
+
+
+    <!-- Tabla con mismo estilo que Vehículos -->
+    <div class="container mt-4">
+        <!-- Encabezado / botón -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="text-dark">Reparaciones Registradas</h2>
+            <a asp-controller="Vehiculo" asp-action="CrearReparacion"
+               class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nueva Reparación
+            </a>
+        </div>
+
+        <div class="table-responsive shadow-sm">
+            <table id="tablaVehiculos" class="table table-bordered table-hover tabla-principal table-striped" style="min-width:800px;">
+                <thead>
+                    <tr>
+                        <th style="width:40px;" class="dt-center"></th>  @* botón ▸ *@
+                        <th class="dt-center"> VIN</th>
+                        <th class="dt-center">Marca</th>
+                        <th class="dt-center">Modelo</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+       
+        $(function () {
+        // Este objeto guardará todas las reparaciones agrupadas por vehiculoId
+        window.reparacionesGroup = {};
+ 
+          // 2) Inicializamos la DataTable con AJAX
+          const dt = $('#tablaVehiculos').DataTable({
+            ajax: {
+              url: '/Vehiculo/ObtenerListadoReparaciones',
+              dataSrc: function(json) {
+                  // json.data es el array completo de ReparacionesDTO
+                  // Agrupamos por vehiculoId y guardamos globalmente
+                  window.reparacionesGroup = _.groupBy(json.data, 'vehiculoId');
+                  // Para la tabla padre devolvemos **solo un elemento por grupo**:
+                  return Object.values(window.reparacionesGroup)
+                               .map(arr => arr[0]);
+                }
+            },
+            columns: [
+              {
+                className: 'details-control text-center',
+                orderable: false,
+                data: null,
+                defaultContent: '<i class="bi bi-plus-circle-fill text-success fs-5"></i>'
+              },
+              { data: 'vin'    },
+              { data: 'marca'  },
+              { data: 'modelo' }
+            ],
+            order: [[1,'asc']],
+            language: { /* tu config de idioma */ }
+          });
+                 // Exponemos la instancia para recargas futuras
+           window.reparacionesTable = dt;
+        // 2) Toggle de la fila hija, usando reparacionesGroup
+         $('#tablaVehiculos tbody').on('click', 'td.details-control', function () {
+           const tr  = $(this).closest('tr');
+           const row = dt.row(tr);
+           const id  = row.data().vehiculoId;
+           if (row.child.isShown()) {
+             row.child.hide();
+             tr.find('i').removeClass('bi-dash-circle-fill text-danger')
+                         .addClass('bi-plus-circle-fill text-success');
+           } else {
+             // invocamos al helper con todas las reps de ese vehículo
+             const reps = window.reparacionesGroup[id] || [];
+             row.child(format(reps)).show();
+             tr.find('i').removeClass('bi-plus-circle-fill text-success')
+                         .addClass('bi-dash-circle-fill text-danger');
+           }
+         });
+
+         
+          window.reparacionesTable = dt;
+
+
+          // 5) Submit AJAX del form de edición dentro del modal
+          $(document).on('submit','#formEditarReparacion',function(e){
+            e.preventDefault();
+            const $form = $(this);
+            const url   = $form.attr('action');
+            const data  = new FormData(this);
+
+            $.ajax({
+              url, method:'POST',
+              data, contentType:false, processData:false,
+              success(res) {
+                // Si es JSON de éxito:
+                if (res && res.success) {
+                  $('#modalGlobal').modal('hide');
+                  // recargamos el padre y, gracias al handler xhr, también el group
+                  dt.ajax.reload(null, false);
+                } else {
+                  // si vuelven HTML with errors, reinyectamos
+                  $('#modalGlobal .modal-body').html(res);
+                  $.validator.unobtrusive.parse('#modalGlobal .modal-body');
+                }
+              },
+              error() {
+                alert('Error inesperado en el servidor');
+              }
+            });
+          });
+
+        });
+
+
+        //inicio de submit para eliminar
+        $(document).on('submit','#formEliminarReparacion',function(e){
+            e.preventDefault();
+            var $form=$(this);
+            var formData=new FormData(this);
+
+            $.ajax({
+                url:$form.attr('action'),
+                type:'POST',
+                data:formData,
+                processData:false,
+                contentType:false,
+                success:function(res){
+                    // Limpia cualquier alerta previa
+                    $('#alertContainer').empty();
+                    // Elige la clase según éxito o error
+                    var tipo = res.success ? 'success' : 'danger';
+                    var alertHtml = `
+                        <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                            ${res.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>`;
+                    // Inserta la alerta
+                    $('#alertContainer').append(alertHtml);
+                    if (res.success) {
+                        // Cierra el modal y recarga la tabla sin resetear la página
+                        $('#modalGlobal').modal('hide');
+
+                        $('#tablaVehiculos').DataTable().ajax.reload(null, false);
+                    } else {
+                        // Si hay errores, reinyectamos el contenido del modal
+                        $('#modalGlobal .modal-body').html(res);
+                        $.validator.unobtrusive.parse('#modalGlobal .modal-body');
+                    }
+                },
+                error:function(){
+                    alert('Error inesperado en el servidor');
+                }
+            });
+        });
+
+        //fin de submit
+        // Tu helper para generar la sub-tabla
+        function format(reps) {
+          const filas = reps.map(r => `
+            <tr>
+              <td class="text-center">${r.descripcion}</td>
+              <td class="text-start">${Number(r.costo).toLocaleString('es-HN',{minimumFractionDigits:2})}</td>
+              <td class="text-center">${dayjs(r.fechaInicio).format('DD/MM/YYYY')}</td>
+              <td class="text-center">${dayjs(r.fechaFin).format('DD/MM/YYYY')}</td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-info me-1"
+                        onclick="abrirModal('lg','Detalle','/Vehiculo/ObtenerDetalleReparacion/${r.reparacionId}')">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-warning me-1"
+                        onclick="abrirModal('lg','Editar','/Vehiculo/EditarReparacion/${r.reparacionId}')">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-danger"
+                        onclick="abrirModal('sm','Borrar','/Vehiculo/BorrarReparacion/${r.reparacionId}')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>`).join('');
+          return `
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="dt-center">Descripción</th>
+                  <th class="text-start">Costo</th>
+                  <th class="dt-center">Inicio</th>
+                  <th class="dt-center">Fin</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>${filas}</tbody>
+            </table>`;
+        }
+
+    </script>
+}

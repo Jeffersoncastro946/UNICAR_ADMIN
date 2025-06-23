@@ -1,0 +1,95 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.ReparacionesDTO; 
+@{
+
+}
+
+<div class="container py-4">
+    <div class="card card-form mx-auto shadow-lg rounded-4 bg-white" style="max-width:900px;">
+        <div class="card-body">
+            <form asp-action="EditarReparacion" asp-controller="Vehiculo" id="formEditarReparacion"  enctype="multipart/form-data">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <div class="row g-3">
+                    <input asp-for="ReparacionId"  type="hidden"/>
+                    <!-- ==== 1. Datos del vehículo (solo lectura) ==== -->
+                    <div class="col-md-6">
+                        <label asp-for="Vin" class="form-label">VIN</label>
+                        <input asp-for="Vin" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Marca" class="form-label">Marca</label>
+                        <input asp-for="Marca" class="form-control" readonly />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Modelo" class="form-label">Modelo</label>
+                        <input asp-for="Modelo" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Anio" class="form-label">Año</label>
+                        <input asp-for="Anio" class="form-control" readonly />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Color" class="form-label">Color</label>
+                        <input asp-for="Color" class="form-control" readonly />
+                    </div>
+
+                    <!-- ==== 2. Fechas (juntas) ==== -->
+                    <div class="col-md-6">
+                        <label asp-for="FechaInicio" class="form-label">Fecha inicio</label>
+                        <input asp-for="FechaInicio" type="date" class="form-control" />
+                        <span asp-validation-for="FechaInicio" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="FechaFin" class="form-label">Fecha fin</label>
+                        <input asp-for="FechaFin" type="date" class="form-control" />
+                        <span asp-validation-for="FechaFin" class="text-danger small"></span>
+                    </div>
+
+                    <!-- ==== 3. Costo ==== -->
+                    <div class="col-md-6">
+                        <label asp-for="Costo" class="form-label">Costo (L)</label>
+                        <input asp-for="Costo" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="Costo" class="text-danger small"></span>
+                    </div>
+
+                    <!-- ==== 4. Descripción ==== -->
+                    <div class="col-md-6">
+                        <label asp-for="Descripcion" class="form-label">Descripción</label>
+                        <textarea asp-for="Descripcion" rows="3" class="form-control"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                    </div>
+
+                    <!-- ==== 5. Responsable ==== -->
+                    <div class="col-md-6">
+                        <label asp-for="Responsable" class="form-label">Responsable</label>
+                        <textarea asp-for="Responsable" rows="3" class="form-control"></textarea>
+                        <span asp-validation-for="Responsable" class="text-danger small"></span>
+                    </div>
+
+                    <!-- ==== 6. Foto (full width) ==== -->
+                    <div class="col-12">
+                        <label asp-for="ImagenFile" class="form-label">Foto de la reparación</label>
+                        <input asp-for="ImagenFile" type="file" class="form-control" />
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.ImagenUrl))
+                    {
+                        <div>
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-image me-1"></i> Foto</h6>
+                            <img src="@Model.ImagenUrl"
+                                 class="img-fluid rounded-3 shadow-sm"
+                                 style="max-height:200px; object-fit:cover;" alt="Foto de la reparación" />
+                        </div>
+                    }
+                </div>
+
+                <!-- ==== Botón ==== -->
+                <div class="text-end mt-4">
+                    <button class="btn btn-outline-success rounded-pill px-4">
+                        <i class="bi bi-save me-1"></i> Guardar Reparación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

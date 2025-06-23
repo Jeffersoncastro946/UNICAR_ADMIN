@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UNICAR_ADMIN.Data;
 using UNICAR_ADMIN.Models.Renta;
+using UNICAR_ADMIN.Servicios.Contrato_Services;
+using UNICAR_ADMIN.Servicios.Custom_Services;
 using UNICAR_ADMIN.Servicios.LocalImage_Services;
 using UNICAR_ADMIN.Servicios.Proveedores_Services;
 using UNICAR_ADMIN.Servicios.Vehiculos_Services;
@@ -35,6 +37,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddScoped<IRepositorio_Vehiculo, Repositorio_Vehiculo>();
 builder.Services.AddScoped<IRepositorio_Proveedores, Repositorio_Proveedores>();
 builder.Services.AddScoped<ILocalImageService, LocalImageService>();
+builder.Services.AddScoped<ICustomeServices, CustomeServices>();
+builder.Services.AddScoped<IContratoServices, ContratoServices>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,6 +1,8 @@
 ﻿@model UNICAR_ADMIN.Models.DTOS.CrearVehiculoDTO
 <h5>Datos del Vehículo</h5>
+
 <div class="row mb-3">
+    <input type="hidden" asp-for="VehiculoId" />
     <div class="col">
         <label asp-for="Marca"></label>
         <input asp-for="Marca" class="form-control" />

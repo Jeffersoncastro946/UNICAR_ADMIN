@@ -1,0 +1,28 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.ClienteDto
+
+<div class="text-center py-4">
+    <!-- Icono grande de “peligro” -->
+    <i class="bi bi-exclamation-triangle-fill fs-1 text-danger mb-3"></i>
+
+    <!-- Mensaje -->
+    <p class="fs-5">
+        ¿Estás seguro de que quieres <strong>eliminar</strong><br />
+        Cliente <em>@Model.NombreCompleto</em> con Identidad <em>@Model.Identidad</em> y RTN <em>  @Model.Rtn</em><br />
+        <small>(Nombre: <code>@Model.NombreCompleto</code>)</small>?
+    </p>
+
+    <!-- Botones dentro del body -->
+    <div class="mt-4">
+        <form id="formEliminarCliente" asp-action="BorrarCliente" asp-controller="Cliente" enctype="multipart/form-data" method="post" class="d-inline">
+            <input type="hidden" asp-for="ClienteId" />
+            <button type="submit" class="btn btn-lg btn-danger me-2">
+                <i class="bi bi-trash me-1"></i> Eliminar
+            </button>
+        </form>
+        <button type="button"
+                class="btn btn-lg btn-outline-secondary"
+                data-bs-dismiss="modal">
+            Cancelar
+        </button>
+    </div>
+</div>

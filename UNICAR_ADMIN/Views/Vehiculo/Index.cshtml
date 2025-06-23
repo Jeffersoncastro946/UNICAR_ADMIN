@@ -4,6 +4,25 @@
     ViewData["Title"] = "Lista de vehículos";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Alert Container -->
+<div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1080; width: auto; max-width: 350px;">
+    <!-- Aquí se inyectarán las alertas -->
+</div>
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="text-dark">Vehículos Registrados</h2>
@@ -12,9 +31,11 @@
         </a>
     </div>
 
+
+
     <div class="table-responsive shadow-sm">
 
-        <table id="Tabla" class="table table-bordered table-hover " style="min-width:800px%">
+        <table id="Tabla" class="table table-bordered table-hover " style="min-width:800px">
             <thead >
                 <tr>
                     <th>Marca</th>
@@ -106,8 +127,10 @@
     </script>
 }
  *@
+
  @section Scripts {
-    <script>
+    
+     <script>
     $(function () {
 
         //inicailizar drops
@@ -148,14 +171,14 @@
                     searchable: false,
                     className: 'text-center',
                     render: id => `
-                        <button class="btn btn-sm btn-warning me-1"
-                                onclick="abrirModal('lg','Editar Vehículo','/Vehiculo/EditarVehiculo/${id}')">
+                         <a href="/Vehiculo/EditarVehiculo/${id}" class="btn btn-sm btn-warning me-1">
                             <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger"
-                                onclick="abrirModal('sm','Eliminar Vehículo','/Vehiculo/BorrarVehiculo/${id}')">
-                            <i class="bi bi-trash"></i>
-                        </button>`
+                        </a>
+                              <button type="button"
+                class="btn btn-sm btn-danger"
+                onclick="abrirModal('sm','Eliminar Vehículo','/Vehiculo/BorrarVehiculo/${id}')">
+          <i class="bi bi-trash"></i>
+        </button>`
                 }
             ],
             responsive: true,
@@ -178,50 +201,7 @@
                 thousands: '.'
             }
         });
-
-        // 2) Delegación del submit por AJAX para el formulario de edición
-        $(document).on('submit', '#formEditarVehiculo', function (e) {
-            e.preventDefault();
-            var $form = $(this);
-            var formData = new FormData(this);
-
-            $.ajax({
-                url: $form.attr('action'),
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (res) {
-                    // Limpia cualquier alerta previa
-                    $('#alertContainer').empty();
-
-                    // Elige la clase según éxito o error
-                    var tipo = res.success ? 'success' : 'danger';
-                    var alertHtml = `
-                        <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
-                            ${res.message}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                        </div>`;
-
-                    // Inserta la alerta
-                    $('#alertContainer').append(alertHtml);
-
-                    if (res.success) {
-                        // Cierra el modal y recarga la tabla sin resetear la página
-                        $('#modalGlobal').modal('hide');
-                        window.vehiculosTable.ajax.reload(null, false);
-                    }
-                },
-                error: function () {
-                    $('#alertContainer').html(`
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            Error inesperado. Intenta de nuevo.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                        </div>`);
-                }
-            });
-            }); //fin submit
-                        // 2) Delegación del submit por AJAX para el formulario de edición
+                // 2) Delegación del submit por AJAX para el formulario de edición
                 $(document).on('submit', '#formEliminarVehiculo', function (e) {
                 e.preventDefault();
                 var $form = $(this);
@@ -265,4 +245,5 @@
                 }); //fin submit
     });
     </script>
+    <script src="~/js/WizardVehiculo.js"></script>
 }

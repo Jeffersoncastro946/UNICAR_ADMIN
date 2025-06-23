@@ -211,14 +211,17 @@ public partial class RentaDbContext : DbContext
             entity.Property(e => e.FechaCreacion)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.FechaFinal).HasColumnType("datetime");
+            entity.Property(e => e.FechaInicial).HasColumnType("datetime");
             entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
-            entity.Property(e => e.FechaReparacion).HasColumnType("datetime");
             entity.Property(e => e.ImagenUrl).HasMaxLength(200);
+            entity.Property(e => e.Responsable).HasMaxLength(200);
             entity.Property(e => e.UsuarioCreacion).HasMaxLength(100);
             entity.Property(e => e.UsuarioModificacion).HasMaxLength(100);
 
             entity.HasOne(d => d.Vehiculo).WithMany(p => p.Reparaciones)
                 .HasForeignKey(d => d.VehiculoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Reparacio__Vehic__534D60F1");
         });
 

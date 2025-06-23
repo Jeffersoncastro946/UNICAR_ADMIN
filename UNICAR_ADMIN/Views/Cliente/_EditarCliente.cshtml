@@ -1,0 +1,46 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.ClienteDto
+
+<div class="card shadow-lg rounded-4 p-4 bg-white w-100" style="max-width: 600px;">
+    <h3 class="mb-4 text-center">Editar Cliente </h3>
+
+    <form asp-action="EditarCliente" id="FormEditar" asp-controller="Cliente" method="post" class="row g-3">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        
+        <input asp-for="ClienteId" type="hidden">
+        <div class="col-md-6">
+            <label asp-for="NombreCompleto" class="form-label"></label>
+            <input asp-for="NombreCompleto" class="form-control" />
+            <span asp-validation-for="NombreCompleto" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="Identidad" class="form-label"></label>
+            <input asp-for="Identidad" class="form-control" />
+            <span asp-validation-for="Identidad" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="Rtn" class="form-label"></label>
+            <input asp-for="Rtn" class="form-control" />
+            <span asp-validation-for="Rtn" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="Telefono" class="form-label"></label>
+            <input asp-for="Telefono" class="form-control" />
+            <span asp-validation-for="Telefono" class="text-danger"></span>
+        </div>
+
+        <div class="col-12">
+            <label asp-for="Direccion" class="form-label"></label>
+            <textarea asp-for="Direccion" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Direccion" class="text-danger"></span>
+        </div>
+
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-outline-success">
+                <i class="bi bi-save"></i> Guardar Cliente
+            </button>
+        </div>
+    </form>
+</div>

@@ -1,11 +1,30 @@
 ﻿@model UNICAR_ADMIN.Models.DTOS.CrearVehiculoDTO
 <h5>Subir Imágenes</h5>
 <div class="row">
-    <div class="col-md-6 mb-3">
+
+@*     <div class="mb-3">
+        <label asp-for="FotoFrontalFile" class="form-label">Foto Frontal</label>
+        <input asp-for="FotoFrontalFile" type="file" class="form-control" />
+        <img id="preview-FotoFrontal"
+             src="@(Model.FotoFrontal != null ? Url.Content(Model.FotoFrontal) : "#")"
+             style="max-width: 200px; display:@(Model.FotoFrontal != null ? "block" : "none"); margin-top:10px;" />
+    </div>
+ *@
+  @*   <div class="col-md-6 mb-3">
         <label asp-for="FotoFrontalFile"></label>
         <input asp-for="FotoFrontalFile" class="form-control" type="file" />
         <div class="mt-2">
             <img id="preview-FotoFrontal" class="img-thumbnail" style="max-width:200px; display:none;" />
+        </div>
+    </div> *@
+    <div class="col-md-6 mb-3">
+        <label asp-for="FotoFrontalFile"></label>
+        <input asp-for="FotoFrontalFile" class="form-control" type="file" />
+        <div class="mt-2">
+            <img id="preview-FotoFrontal"
+             src="@(Model.FotoFrontal != null ? Url.Content(Model.FotoFrontal) : "#")"
+             class="img-thumbnail"
+             style="max-width:200px; display:@(Model.FotoFrontal != null ? "block" : "none");" />
         </div>
     </div>
 
@@ -13,7 +32,10 @@
         <label asp-for="FotoTraseraFile"></label>
         <input asp-for="FotoTraseraFile" class="form-control" type="file" />
         <div class="mt-2">
-            <img id="preview-FotoTrasera" class="img-thumbnail" style="max-width:200px; display:none;" />
+            <img id="preview-FotoTrasera"
+                 src="@(Model.FotoTrasera != null ? Url.Content(Model.FotoTrasera) : "#")"
+                 class="img-thumbnail"
+                 style="max-width:200px; display:@(Model.FotoTrasera != null ? "block" : "none");" />
         </div>
     </div>
 
@@ -21,49 +43,70 @@
         <label asp-for="FotoLateralIzquierdaFile"></label>
         <input asp-for="FotoLateralIzquierdaFile" class="form-control" type="file" />
         <div class="mt-2">
-            <img id="preview-FotoLateralIzquierda" class="img-thumbnail" style="max-width:200px; display:none;" />
+            <img id="preview-FotoLateralIzquierda"
+                 src="@(Model.FotoLateralIzquierda != null ? Url.Content(Model.FotoLateralIzquierda) : "#")"
+                 class="img-thumbnail"
+                 style="max-width:200px; display:@(Model.FotoLateralIzquierda != null ? "block" : "none");" />
         </div>
     </div>
     <div class="col-md-6 mb-3">
         <label asp-for="FotoLateralDerechaFile"></label>
         <input asp-for="FotoLateralDerechaFile" class="form-control" type="file" />
         <div class="mt-2">
-            <img id="preview-FotoLateralDerecha" class="img-thumbnail" style="max-width:200px; display:none;" />
+            <img id="preview-FotoLateralDerecha"
+                 src="@(Model.FotoLateralDerecha != null ? Url.Content(Model.FotoLateralDerecha) : "#")"
+                 class="img-thumbnail"
+                 style="max-width:200px; display:@(Model.FotoLateralDerecha != null ? "block" : "none");" />
         </div>
     </div>
     <div class="col-md-6 mb-3">
         <label asp-for="FotoInterior1File"></label>
         <input asp-for="FotoInterior1File" class="form-control" type="file" />
         <div class="mt-2">
-            <img id="preview-FotoInterior1" class="img-thumbnail" style="max-width:200px; display:none;" />
+            <img id="preview-FotoInterior1"
+                 src="@(Model.FotoInterior1 != null ? Url.Content(Model.FotoInterior1) : "#")"
+                 class="img-thumbnail"
+                 style="max-width:200px; display:@(Model.FotoInterior1 != null ? "block" : "none");" />
         </div>
     </div>
     <div class="col-md-6 mb-3">
         <label asp-for="FotoInterior2File"></label>
         <input asp-for="FotoInterior2File" class="form-control" type="file" />
         <div class="mt-2">
-            <img id="preview-FotoInterior2" class="img-thumbnail" style="max-width:200px; display:none;" />
+            <img id="preview-FotoInterior2"
+                 src="@(Model.FotoInterior2 != null ? Url.Content(Model.FotoInterior2) : "#")"
+                 class="img-thumbnail"
+                 style="max-width:200px; display:@(Model.FotoInterior2 != null ? "block" : "none");" />
         </div>
     </div>
     <div class="col-md-6 mb-3">
         <label asp-for="FotoMotorFile"></label>
         <input asp-for="FotoMotorFile" class="form-control" type="file" />
         <div class="mt-2">
-            <img id="preview-FotoMotor" class="img-thumbnail" style="max-width:200px; display:none;" />
+            <img id="preview-FotoMotor"
+                 src="@(Model.FotoMotor != null ? Url.Content(Model.FotoMotor) : "#")"
+                 class="img-thumbnail"
+                 style="max-width:200px; display:@(Model.FotoMotor != null ? "block" : "none");" />
         </div>
     </div>
     <div class="col-md-6 mb-3">
         <label asp-for="FotoExtra1File"></label>
         <input asp-for="FotoExtra1File" class="form-control" type="file" />
         <div class="mt-2">
-            <img id="preview-FotoExtra1" class="img-thumbnail" style="max-width:200px; display:none;" />
+            <img id="preview-FotoExtra1"
+                 src="@(Model.FotoExtra1 != null ? Url.Content(Model.FotoExtra1) : "#")"
+                 class="img-thumbnail"
+                 style="max-width:200px; display:@(Model.FotoExtra1 != null ? "block" : "none");" />
         </div>
     </div>   
     <div class="col-md-6 mb-3">
         <label asp-for="FotoExtra2File"></label>
-        <input asp-for="FotoExtra2File" class="form-control" type="file" />
+        <input asp-for="FotoExtra2File" class="form-control" type="file" /> 
         <div class="mt-2">
-            <img id="preview-FotoExtra2" class="img-thumbnail" style="max-width:200px; display:none;" />
+            <img id="preview-FotoExtra2"
+                 src="@(Model.FotoExtra2 != null ? Url.Content(Model.FotoExtra2) : "#")"
+                 class="img-thumbnail"
+                 style="max-width:200px; display:@(Model.FotoExtra2 != null ? "block" : "none");" />
         </div>
     </div>
 </div>

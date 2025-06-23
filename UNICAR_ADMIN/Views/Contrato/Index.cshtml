@@ -1,0 +1,107 @@
+﻿@{
+    ViewData["Title"] = "Lista de Contratos";
+}
+
+
+<div class="container mt-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2 class="text-dark mb-0">Contratos Registrados</h2>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary"
+                    onclick="abrirModal('md','Registrar Contrato','/Contrato/Crear')">
+                <i class="bi bi-plus-circle"></i> Nuevo Contrato
+            </button>
+        </div>
+    </div>
+
+    <div class="table-responsive shadow-sm">
+        <table id="Tabla" class="table table-bordered table-hover" style="min-width:800px">
+            <thead>
+                <tr>
+                    <th></th> <!-- Para el icono de expandir o detalles -->
+                    <th>ID Contrato</th>
+                    <th>Cliente</th>
+                    @* <th>Vehículo</th> *@
+                    <th>Vendedor</th>
+                    <th>Fecha Venta</th>
+                    <th>Precio Venta</th>
+                    <th>Tipo Venta</th>
+                    <th>Firma</th>
+                    <th>Activo</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('#Tabla').DataTable({
+                ajax: {
+                    url: '@Url.Action("ObtenerContratos", "Contrato")',
+                    dataSrc: 'data' // Ajusta si tu JSON tiene otra estructura
+                },
+                columns: [
+                    {
+                        className: 'details-control text-center',
+                        orderable: false,
+                        data: null,
+                        defaultContent: '<i class="bi bi-plus-circle-fill text-success fs-5"></i>'
+                    },
+                    { data: 'contratoId' },
+                    { data: 'cliente' },
+                    // { data: 'vehiculoId' }, // Cambia por marca/modelo si lo tienes en el DTO
+                    { data: 'vendedor' }, // Cambia por nombre si lo tienes en el DTO
+                    { data: 'fechaVenta', render: data => data ? new Date(data).toLocaleDateString() : '' },
+                    { data: 'precioVenta', render: data => `L ${data?.toLocaleString()}` },
+                    { data: 'tipoVenta' },
+                    { data: 'firmaDocumento',
+                     render: data => data
+                     ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                     : '<i class="bi bi-x-circle-fill text-danger"></i>'
+                    },
+                    { data: 'activo', render: data => data 
+                     ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                     : '<i class="bi bi-x-circle-fill text-danger"></i>' },
+                    {
+                        data: 'contratoId',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: id => `
+                            <button class="btn btn-sm btn-warning" onclick="abrirModal('md','Editar Contrato','/Contrato/Editar/${id}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="abrirModal('sm','Eliminar Contrato','/Contrato/Eliminar/${id}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        `
+                    }
+                ],
+                responsive: true,
+                language: {
+                    lengthMenu: 'Mostrar _MENU_ registros por página',
+                    zeroRecords: 'No se encontraron registros',
+                    info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+                    infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+                    infoFiltered: '(filtrado de _MAX_ registros totales)',
+                    search: 'Buscar:',
+                    loadingRecords: 'Cargando...',
+                    processing: 'Procesando...',
+                    paginate: {
+                        first: 'Primero',
+                        last: 'Último',
+                        next: 'Siguiente',
+                        previous: 'Anterior'
+                    },
+                    decimal: ',',
+                    thousands: '.'
+                }
+            });
+        });
+    </script>
+}

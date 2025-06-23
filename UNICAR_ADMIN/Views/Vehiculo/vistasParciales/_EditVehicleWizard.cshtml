@@ -1,0 +1,114 @@
+﻿@* Views/Vehiculo/_EditVehicleWizard.cshtml *@
+@model UNICAR_ADMIN.Models.DTOS.CrearVehiculoDTO
+
+<form asp-action="EditarVehiculo" asp-controller="Vehiculo" method="post" enctype="multipart/form-data">
+      <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="container py-5">
+        <!-- Título + botón Volver -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-1 d-none d-md-block"><!-- hueco lateral --></div>
+
+            <!-- Título centrado -->
+            <div class="col-6 col-md-9 text-center">
+                <h3 class="mb-0">Registrar Vehículo</h3>
+            </div>
+
+            <!-- Botón a la derecha -->
+            <div class="col-6 col-md-2 text-center">
+                <a asp-action="Index" asp-controller="Vehiculo" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al listado
+                </a>
+            </div>
+        </div>
+
+        <div class="card shadow-lg rounded-4 p-4 bg-white w-100 col-xl-10 col-lg-11">
+
+            <div class="row">
+                <!-- Stepper izquierdo -->
+                <div class="col-md-3">
+                    <div class="list-group stepper">
+                        <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#paso1">
+                            <i class="bi bi-car-front me-2"></i> Datos del Vehículo
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#paso2">
+                            <i class="bi bi-images me-2"></i> Imágenes
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#paso3">
+                            <i class="bi bi-truck me-2"></i> Proveedor
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contenido de los pasos -->
+                <div class="col-md-9">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="paso1">
+                            @await Html.PartialAsync("vistasParciales/_VehicleData", Model)
+                        </div>
+
+                        <div class="tab-pane fade" id="paso2">
+                            @await Html.PartialAsync("vistasParciales/_ImageUpload", Model)
+                        </div>
+
+                        <div class="tab-pane fade" id="paso3">
+                            @await Html.PartialAsync("vistasParciales/_ProveedorSection", Model)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</form>
+@*  <!-- BOTONES ANTERIOR / SIGUIENTE / GUARDAR -->
+    <div class="mt-3 text-end">
+        <button type="button" class="btn btn-outline-secondary me-2" id="wizard-prev" disabled>
+            ← Anterior
+        </button>
+        <button type="button" class="btn btn-primary me-2" id="wizard-next">
+            Siguiente →
+        </button>
+        <button type="submit" class="btn btn-success d-none" id="wizard-save">
+            <i class="bi bi-save me-1"></i> Guardar cambios
+        </button>
+    </div> *@
+@* 
+<script>
+    (function(){
+      const tabs = Array.from(document.querySelectorAll('#wizard-tabs a'));
+      let idx = 0;
+      const prev = document.getElementById('wizard-prev');
+      const next = document.getElementById('wizard-next');
+      const save = document.getElementById('wizard-save');
+
+      function refreshBtns() {
+        prev.disabled = idx === 0;
+        next.classList.toggle('d-none', idx === tabs.length - 1);
+        save.classList.toggle('d-none', idx !== tabs.length - 1);
+      }
+
+      next.addEventListener('click', () => {
+        if (idx < tabs.length - 1) {
+          idx++;
+          tabs[idx].click();
+          refreshBtns();
+        }
+      });
+      prev.addEventListener('click', () => {
+        if (idx > 0) {
+          idx--;
+          tabs[idx].click();
+          refreshBtns();
+        }
+      });
+      tabs.forEach((tab, i) => {
+        tab.addEventListener('shown.bs.tab', () => {
+          idx = i;
+          refreshBtns();
+        });
+      });
+    })();
+</script>
+ *@

@@ -1,0 +1,94 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.ReparacionesDTO
+
+@{
+    var culturaHN = new System.Globalization.CultureInfo("es-HN");
+}
+
+<div class="card shadow-lg rounded-4 border-0 mb-4">
+
+    <!-- Cabecera: degradado azul + texto blanco -->
+    <div class="card-header text-white py-3"
+         style="background:linear-gradient(90deg,#0d6efd 0%,#0dcaf0 100%);">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+
+            <!-- Badges de vehículo en blanco -->
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="badge bg-transparent border border-light fw-normal">
+                    Marca: @Model.Marca
+                </span>
+                <span class="badge bg-transparent border border-light fw-normal">
+                    Modelo: @Model.Modelo
+                </span>
+                <span class="badge bg-transparent border border-light fw-normal">
+                    Año: @Model.Anio
+                </span>
+                <span class="badge bg-transparent border border-light fw-normal">
+                    Color: @Model.Color
+                </span>
+            </div>
+
+            <!-- VIN alineado a la derecha -->
+            <span class="fw-light text-white-80 small ms-auto">
+                VIN: @Model.Vin
+            </span>
+        </div>
+    </div>
+
+    <div class="card-body">
+
+        <!-- 1) Descripción -->
+        <div class="d-flex mb-4">
+            <div class="me-3 mt-1 text-primary fs-4">
+                <i class="bi bi-card-text"></i>
+            </div>
+            <div>
+                <h6 class="fw-semibold mb-1">Descripción</h6>
+                <p class="mb-0">@Model.Descripcion</p>
+            </div>
+        </div>
+
+        <!-- 2) Costo + Fechas -->
+        <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+            <div class="col">
+                <div class="bg-light rounded-3 p-3 h-100">
+                    <div class="small text-muted">Costo (L)</div>
+                    <div class="fs-5 fw-semibold">
+                        @Model.Costo?.ToString("C2", culturaHN)
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="bg-light rounded-3 p-3 h-100">
+                    <div class="small text-muted">Fecha inicio</div>
+                    <div class="fs-6">@Model.FechaInicio:dd/MM/yyyy</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="bg-light rounded-3 p-3 h-100">
+                    <div class="small text-muted">Fecha fin</div>
+                    <div class="fs-6">@Model.FechaFin:dd/MM/yyyy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3) Vehículo -->
+        <h6 class="fw-semibold mb-2"><i class="bi bi-car-front-fill me-1"></i> Vehículo</h6>
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            @* <span class="badge bg-primary-subtle text-primary"><strong>Datos del encargado de reparacion:<span class="badge bg-primary-subtle text-success">@Model.Responsable</span></strong></span>
+             *@
+            <span class="badge bg-primary-subtle text-primary"><strong>Datos del encargado de reparacion:</strong> @Model.Responsable</span>
+        </div>
+
+        <!-- 4) Foto (opcional) -->
+        @if (!string.IsNullOrWhiteSpace(Model.ImagenUrl))
+        {
+            <div>
+                <h6 class="fw-semibold mb-2"><i class="bi bi-image me-1"></i> Foto</h6>
+                <img src="@Model.ImagenUrl"
+                     class="img-fluid rounded-3 shadow-sm"
+                     style="max-height:250px; object-fit:cover;" alt="Foto de la reparación" />
+            </div>
+        }
+    </div>
+</div>

@@ -1,21 +1,11 @@
 ﻿@model UNICAR_ADMIN.Models.DTOS.CrearVehiculoDTO
 
- <!-- 3) Botón para abrir modal de “Nuevo Proveedor” (solo un iconito +) -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="m-0">Datos del Proveedor</h5>
-    <!-- Botón “+” en la esquina superior derecha -->
-    <button type="button"
-            class="btn btn-outline-primary"
-            style="width: 40px; height: 40px; padding: 0;"
-            onclick="abrirModal('md','Nuevo Proveedor','/Proveedor/CrearProveedor')"
-            title="Nuevo proveedor">
-        <i class="bi bi-plus" style="font-size: 1.2rem;"></i>
-    </button>
-</div>
-<!-- 1) Dropdown con proveedores existentes -->
 <label asp-for="ProveedorId"></label>
-<select asp-for="ProveedorId" asp-items="Model.ListaProveedores" class="form-select form-control">
-    <option value="">--CARGANDO --</option>
+<select asp-for="ProveedorId"
+        asp-items="Model.ListaProveedores"
+        id="ProveedorId"
+        class="form-select form-control"
+        data-selected-id="@Model.ProveedorId">
 </select>
 
 <!-- 2) Campos de datos del proveedor (ahora siempre visibles) -->

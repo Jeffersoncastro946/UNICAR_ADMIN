@@ -35,3 +35,33 @@ function abrirModal(tamano, titulo, url) {
         modal.modal('show');
     });
 }
+
+/**
+ * Muestra una alerta de Bootstrap dentro de #alertContainer.
+ * @param {string} type    - 'success','danger','warning','info',...
+ * @param {string} message - El texto a mostrar.
+ * @param {number} [timeout=5000] - Tiempo en ms para auto-cerrar (opcional).
+ */
+function showAlert(type, message, timeout = 5000) {
+    // Generar un ID único
+    const alertId = 'alert-' + Date.now();
+
+    // HTML con template literal
+    const html = `
+    <div id="${alertId}"
+         class="alert alert-${type} alert-dismissible fade show"
+         role="alert">
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>`;
+
+    // Insertar en el contenedor
+    $('#alertContainer').append(html);
+
+    // Auto–cierre
+    if (timeout > 0) {
+        setTimeout(() => {
+            $('#' + alertId).alert('close');
+        }, timeout);
+    }
+}
