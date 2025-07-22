@@ -13,5 +13,6 @@ namespace UNICAR_ADMIN.Models.DTOS
         public string? Estado { get; set; }
         public bool EsConsignacion { get; set; }
         public string? Miniatura { get; set; }
+       public double? TotalGastosMantenimientos{get; set;}
     }
 }

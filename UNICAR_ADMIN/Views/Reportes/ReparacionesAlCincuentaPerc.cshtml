@@ -1,0 +1,235 @@
+﻿@using UNICAR_ADMIN.Models.DTOS.Reportes
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var fechaCorte = DateTime.Now.ToString("dd/MM/yyyy");
+    var header = (ReporteHeaderViewModel)ViewData["Header"]!;
+}
+
+<div class="container py-4">
+    @await Html.PartialAsync("_ReporteHeaderGeneral", header)
+
+    <!-- KPIs -->
+    <div id="kpis" class="row g-4 mb-4"></div>
+
+    <div class="mb-4">
+        <button id="btn-exportar" class="btn btn-outline-primary ms-2">
+            📄 Exportar a PDF
+        </button>
+    </div>
+
+    <!-- Tabla Detalle -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Detalle de vehículos</h5>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle tabla-detalle">
+                    <thead>
+                        <tr>
+                            <th class="text-center">VIN</th>
+                            <th class="text-center">Marca</th>
+                            <th class="text-center">Modelo</th>
+                            <th class="text-center">Año</th>
+                            <th class="text-end">Precio Venta</th>
+                            <th class="text-end">Reparaciones</th>
+                            <th class="text-center">% Reparación</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Observación</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tbodyVehiculos"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Homogeneidad de dashboards */
+        .tabla-detalle thead th {
+            background: #6639B3 !important;
+            color: #fff !important;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            position: relative;
+            border-radius: 0 !important;
+            padding-top: 9px;
+            padding-bottom: 9px;
+            letter-spacing: 0.2px;
+            text-align: center;
+        }
+
+        .tabla-detalle thead tr {
+            position: relative;
+        }
+
+            .tabla-detalle thead tr::after {
+                content: "";
+                display: block;
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: -1px;
+                height: 4px;
+                background: #ec4899;
+                border-bottom-left-radius: 5px;
+                border-bottom-right-radius: 5px;
+                z-index: 1;
+            }
+
+        .tabla-detalle tbody td {
+            font-size: .95rem;
+            vertical-align: middle;
+        }
+        /* Quita el borde superior de la primera fila de datos */
+        .tabla-detalle thead + tbody tr:first-child td {
+            border-top: none !important;
+        }
+
+        /* BADGES */
+        .badge.bg-danger {
+            background: #dc3545 !important;
+        }
+
+        .badge.bg-warning {
+            background: #ffc107 !important;
+            color: #222 !important;
+        }
+
+        .badge.bg-success {
+            background: #22c55e !important;
+        }
+
+        /* KPI dashboard - Homogéneo */
+        #kpis.row {
+            gap: 18px 0;
+        }
+
+        .kpi-box {
+            background: #fff;
+            border: 1px solid #ececf5;
+            border-radius: 14px;
+            padding: 1.1rem 1.3rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            flex: 1 1 180px;
+            min-width: 180px;
+            margin-bottom: 12px;
+        }
+
+        .kpi-title {
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #555;
+            margin: 0 0 .25rem;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: #1e1f3b;
+            margin: 0;
+        }
+
+        .kpi-badge {
+            font-size: .65rem;
+            background: #ec4899;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 12px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        (async function(){
+            const url = '@Url.Action("VehiculosReparacionAltaJson", "Reportes")';
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            const {kpi, vehiculos} = data;
+
+            // KPIs
+            const kpisDiv = document.getElementById('kpis');
+            const kpiItems = [
+                { title: 'Vehículos afectados', value: kpi.unidades.toLocaleString() },
+                { title: 'Promedio % reparación', value: (kpi.porcentPromedio * 100).toFixed(1) + '%' },
+                { title: 'Costo total reparaciones', value: kpi.costoTotal.toLocaleString(undefined, { style: 'currency', currency: 'HNL' }) },
+                { title: 'Valor total vehículos', value: kpi.valorTotal.toLocaleString(undefined, { style: 'currency', currency: 'HNL' }) }
+            ];
+            kpiItems.forEach(k => {
+                const col = document.createElement('div');
+                col.className = 'col-auto';
+                col.innerHTML = `<div class="kpi-box">
+                    <p class="kpi-title">${k.title}</p>
+                    <p class="kpi-value">${k.value}</p>
+                </div>`;
+                kpisDiv.appendChild(col);
+            });
+
+            // Helper para el color del badge
+            function reparacionBadge(porc) {
+                if (porc > 0.8) return 'badge bg-danger';
+                if (porc > 0.5) return 'badge bg-warning text-dark';
+                return 'badge bg-success';
+            }
+
+            // Poblar la tabla
+            const tbody = document.getElementById('tbodyVehiculos');
+            vehiculos.forEach(v => {
+                const porcentaje = v.totalReparaciones / v.precioVenta;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center">${v.vin ?? ''}</td>
+                    <td>${v.marca}</td>
+                    <td>${v.modelo}</td>
+                    <td class="text-center">${v.anio}</td>
+                    <td class="text-end">${v.precioVenta.toLocaleString(undefined, { style: 'currency', currency: 'HNL' })}</td>
+                    <td class="text-end">${v.totalReparaciones.toLocaleString(undefined, { style: 'currency', currency: 'HNL' })}</td>
+                    <td class="text-center">
+                        <span class="${reparacionBadge(porcentaje)}">${(porcentaje * 100).toFixed(1)}%</span>
+                    </td>
+                    <td class="text-center">${v.estado ?? ''}</td>
+                    <td>${v.observacion ?? ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Exportar PDF
+            function exportarPDF() {
+                const mainContainer = document.querySelector('.container.py-4');
+                const clone = mainContainer.cloneNode(true);
+                const btnClone = clone.querySelector('#btn-exportar');
+                if (btnClone) btnClone.remove();
+                const opt = {
+                    margin: [0.2, 0, 0.5, 0],
+                    filename: 'Reparaciones_excesiva.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+                html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
+                    const total = pdf.internal.getNumberOfPages();
+                    for (let i = 1; i <= total; i++) {
+                        pdf.setPage(i);
+                        pdf.setFontSize(9);
+                        pdf.setTextColor(150);
+                        pdf.text(
+                            `Página ${i} de ${total}`,
+                            pdf.internal.pageSize.getWidth() - 1.5,
+                            pdf.internal.pageSize.getHeight() - 0.3
+                        );
+                    }
+                }).save();
+            }
+            document.getElementById('btn-exportar').addEventListener('click', exportarPDF);
+
+        })();
+    </script>
+}

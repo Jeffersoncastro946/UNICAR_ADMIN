@@ -14,6 +14,30 @@
         });
     }
 });
+//function abrirModal(tamano, titulo, url) {
+//    const modal = $('#modalGlobal');
+//    const dialog = modal.find('.modal-dialog');
+
+//    // Quita cualquier tamaño previo
+//    dialog.removeClass('modal-sm modal-md modal-lg');
+
+//    // Aplica el tamaño
+//    if (tamano === 'sm') dialog.addClass('modal-sm');
+//    else if (tamano === 'md') dialog.addClass('modal-md');
+//    else if (tamano === 'lg') dialog.addClass('modal-lg');
+
+//    // Asigna el título
+//    modal.find('.modal-title').text(titulo);
+
+//    // Carga el contenido desde la URL
+//    $.get(url, function (html) {
+//        const body = modal.find('.modal-body');
+//        body.html(html);
+//        modal.modal('show');
+//    });
+
+//}
+
 function abrirModal(tamano, titulo, url) {
     const modal = $('#modalGlobal');
     const dialog = modal.find('.modal-dialog');
@@ -31,10 +55,18 @@ function abrirModal(tamano, titulo, url) {
 
     // Carga el contenido desde la URL
     $.get(url, function (html) {
-        modal.find('.modal-body').html(html);
+        const body = modal.find('.modal-body');
+        body.html(html);
+
+        // 👇🏻 PARSEA VALIDACIÓN UNOBTRUSIVE AQUÍ 👇🏻
+        $.validator.unobtrusive.parse(body);
+
         modal.modal('show');
     });
 }
+
+
+
 
 /**
  * Muestra una alerta de Bootstrap dentro de #alertContainer.

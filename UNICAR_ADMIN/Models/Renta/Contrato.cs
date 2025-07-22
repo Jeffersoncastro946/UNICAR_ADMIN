@@ -19,8 +19,6 @@ public partial class Contrato
 
     public string? TipoVenta { get; set; }
 
-    public string? FirmaDocumento { get; set; }
-
     public DateTime? FechaCreacion { get; set; }
 
     public DateTime? FechaModificacion { get; set; }
@@ -31,9 +29,23 @@ public partial class Contrato
 
     public bool? Activo { get; set; }
 
+    public string Estado { get; set; } = null!;
+
+    public decimal MontoTotal { get; set; }
+
+    public decimal MontoPagado { get; set; }
+
+    public int PlazoMeses { get; set; }
+
+    public decimal TasaAnual { get; set; }
+
+    public decimal CuotaMensual { get; set; }
+
     public virtual Cliente? Cliente { get; set; }
 
     public virtual ICollection<Financiamiento> Financiamientos { get; set; } = new List<Financiamiento>();
+
+    public virtual ICollection<PagosContrato> PagosContratos { get; set; } = new List<PagosContrato>();
 
     public virtual Vehiculo? Vehiculo { get; set; }
 

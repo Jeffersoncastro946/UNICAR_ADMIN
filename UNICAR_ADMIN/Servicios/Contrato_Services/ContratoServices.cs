@@ -1,13 +1,4 @@
-﻿using UNICAR_ADMIN.Models.DTOS;
-using UNICAR_ADMIN.Models.Renta;
-using Microsoft.EntityFrameworkCore;
-
-/*para el pdf
- */
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using System;
-using System.IO;
+﻿using Humanizer;
 using iText.IO.Font.Constants;
 using iText.IO.Image;
 using iText.Kernel.Font;
@@ -15,113 +6,258 @@ using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.Layout.Element;
 using iText.Layout.Properties;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using UNICAR_ADMIN.Models.DTOS;
+using UNICAR_ADMIN.Models.Renta;
+using UNICAR_ADMIN.Servicios.Vehiculos_Services;
 namespace UNICAR_ADMIN.Servicios.Contrato_Services
 {
 
     public interface IContratoServices
     {
         Task<IEnumerable<ContratoDto>> ObtenerTodos();
-        Task<ContratoDto> CrearAsync(ContratoDto dto, string user, IFormFile? firmaFile);
+        Task<IEnumerable<ContratoDto>> HistorialContratos();
+        Task<ContratoDto> ObtenerPorId(int id);
+        Task<ContratoDto> CrearAsync(ContratoDto dto, string user);
         Task<bool> Actualizar(ContratoDto dto, string user);
         Task<bool> Eliminar(int id, string user);
-        Task<string?> GuardarFirmaAsync(IFormFile? firmaFile);
-        Task<string> GenerarPdfAsync(int contratoId);
+        Task<ListaVehiculoDTO> ObtenerVehiculosPorContrato(int id);
+        Task<bool> TienePago(int idcontrato);
+
+       Task<string> GenerarPdfAsync(int contratoId);
+        Task<IEnumerable<SelectListItem>> ObtenerClientesActivos();
+        Task<IEnumerable<SelectListItem>> ObtenerVendedoresActivos();
+        Task<IEnumerable<SelectListItem>> ObtenerVehiculosActivos(bool editar);
     }
 
 
-    public class ContratoServices: IContratoServices
+    public class ContratoServices : IContratoServices
     {
         // Inyectamos el contexto de la base de datos
         private readonly RentaDbContext context;
+        private readonly IRepositorio_Vehiculo repositorio_Vehiculo;
         // Inyectamos IWebHostEnvironment si es necesario para manejar archivos o rutas
         private readonly IWebHostEnvironment env;
 
-        public ContratoServices(RentaDbContext _context, IWebHostEnvironment env)
+        public ContratoServices(RentaDbContext _context, IWebHostEnvironment env, IRepositorio_Vehiculo repositorio_Vehiculo)
         {
             context = _context ?? throw new ArgumentNullException(nameof(context));
             this.env = env ?? throw new ArgumentNullException(nameof(env));
+            this.repositorio_Vehiculo = repositorio_Vehiculo ?? throw new ArgumentNullException(nameof(repositorio_Vehiculo));
         }
 
         public async Task<IEnumerable<ContratoDto>> ObtenerTodos()
         {
-            var contratos = await context.Contratos.Where(x => x.Activo == true)
+            var contratos = await context.Contratos
+                //.Where(x => x.Activo == true && (x.Cliente != null && x.Cliente.Activo == true)) // Fix for CS0019 and CS8652
+                .Where(x => (x.Estado != "Finalizado" && x.Estado != "Cancelado") && x.Activo == true && x.Cliente != null && x.Cliente.Activo == true)
                 .Select(x => new ContratoDto
                 {
                     ContratoId = x.ContratoId,
                     VehiculoId = x.VehiculoId!.Value,
                     ClienteId = x.ClienteId!.Value,
-                    Cliente  = x.Cliente != null ? x.Cliente.NombreCompleto : "N/A",
+                    Cliente = x.Cliente != null ? x.Cliente.NombreCompleto : "N/A",
                     VendedorId = x.VendedorId!.Value,
-                    Vendedor = x.Vendedor !=null ? x.Vendedor.NombreCompleto : "N/A",
+                    Vendedor = x.Vendedor != null ? x.Vendedor.NombreCompleto : "N/A",
                     FechaVenta = x.FechaVenta ?? DateTime.Now, // si no es nullable
                     PrecioVenta = x.PrecioVenta ?? 0.0m,
                     TipoVenta = x.TipoVenta ?? "sin venta",
-                    FirmaDocumento = x.FirmaDocumento, // si lo necesitas
-                    Activo = x.Activo!.Value
+                    Activo = x.Activo!.Value,
+                    EstadoContrato=x.Estado,
+                    PrecioContrato=x.MontoTotal,
+                    //Pagado=x.PagosContratos.Where(p=>p.Activo==true).Sum(p => (decimal?)p.MontoPagado ?? 0),
+                    Pagado = x.PagosContratos.Where(p => p.Activo == true).Sum(p => (decimal?)p.MontoPagado) ?? 0m,
+                    UltimoPago = x.PagosContratos
+                        .Where(p => p.Activo == true)
+                        .OrderByDescending(c => c.FechaPago)
+                        .Select(p => (DateTime?)p.FechaPago.ToDateTime(TimeOnly.MinValue))
+                        .FirstOrDefault()
+
+                }).ToListAsync(); // Ensure Microsoft.EntityFrameworkCore is imported
+            return contratos;
+        }
+        public async Task<IEnumerable<ContratoDto>> HistorialContratos()
+        {
+            var contratos = await context.Contratos
+                .Where(x => (x.Estado == "Cancelado" || x.Estado == "Finalizado") && x.Activo == true && x.Cliente != null && x.Cliente.Activo == true)
+                .Select(x => new ContratoDto
+                {
+                    ContratoId = x.ContratoId,
+                    VehiculoId = x.VehiculoId!.Value,
+                    ClienteId = x.ClienteId!.Value,
+                    Cliente = x.Cliente != null ? x.Cliente.NombreCompleto : "N/A",
+                    VendedorId = x.VendedorId!.Value,
+                    Vendedor = x.Vendedor != null ? x.Vendedor.NombreCompleto : "N/A",
+                    FechaVenta = x.FechaVenta ?? DateTime.Now, // si no es nullable
+                    PrecioVenta = x.PrecioVenta ?? 0.0m,
+                    TipoVenta = x.TipoVenta ?? "sin venta",
+                    Activo = x.Activo!.Value,
+                    EstadoContrato = x.Estado,
+                    PrecioContrato = x.MontoTotal,
+                    Pagado = x.PagosContratos.Where(p => p.Activo == true).Sum(p => (decimal?)p.MontoPagado) ?? 0m,
+                    UltimoPago = x.PagosContratos
+                        .Where(p => p.Activo == true)
+                        .OrderByDescending(c => c.FechaPago)
+                        .Select(p => (DateTime?)p.FechaPago.ToDateTime(TimeOnly.MinValue))
+                        .FirstOrDefault()
+
                 }).ToListAsync(); // Ensure Microsoft.EntityFrameworkCore is imported
             return contratos;
         }
 
+        public async Task<ContratoDto> ObtenerPorId(int id)
+        {
+            var contrato=await context.Contratos.
+                Where(c=>c.ContratoId == id && c.Activo == true).Select(x=>new ContratoDto
+                {
+                    ContratoId=x.ContratoId,
+                    vehiculo= x.Vehiculo != null ? $"{x.Vehiculo.Vin}-{x.Vehiculo.Marca} {x.Vehiculo.Modelo} ({x.Vehiculo.Anio})" : "N/A",
+                    Cliente= x.Cliente != null ? x.Cliente.NombreCompleto : "N/A",
+                    Vendedor= x.Vendedor != null ? x.Vendedor.NombreCompleto : "N/A",
+                    TipoVenta = x.TipoVenta ?? "sin venta",
+                    FechaVenta = x.FechaVenta ?? DateTime.Now, // si no es nullable
+                    PrecioVenta = x.PrecioVenta ?? 0.0m,
+                    ClienteId=x.ClienteId ?? 0,
+                    VendedorId=x.VendedorId ??0,
+                    VehiculoId=x.VehiculoId ??0,
+                    //obtener campos financieros
+                    TasaAnual = x.TasaAnual,
+                    CuotaMensual=x.CuotaMensual,
+                    PlazoMeses=x.PlazoMeses,
+                    EstadoContrato=x.Estado, //con este si el estado es cancelado automaticamente se elimina el contrarto
+                    PrecioContrato = x.MontoTotal,
+                    Pagado = x.PagosContratos.Where(p => p.Activo == true).Sum(p => (decimal?)p.MontoPagado) ?? 0m,
+                    UltimoPago = x.PagosContratos
+                        .Where(p => p.Activo == true)
+                        .OrderByDescending(c => c.FechaPago)
+                        .Select(p => (DateTime?)p.FechaPago.ToDateTime(TimeOnly.MinValue))
+                        .FirstOrDefault()
+                }).FirstOrDefaultAsync();
+            
+            return contrato ?? throw new KeyNotFoundException($"Contrato con ID {id} no encontrado.");
+        }
 
 
         public async Task<bool> Actualizar(ContratoDto dto, string user)
         {
             var ent = await context.Contratos.FindAsync(dto.ContratoId)
                      ?? throw new KeyNotFoundException("Contrato no encontrado");
-            // mapea campos
-            ent.VehiculoId = dto.VehiculoId;
-            ent.ClienteId = dto.ClienteId;
-            ent.VendedorId = dto.VendedorId;
-            ent.FechaVenta = dto.FechaVenta;
-            ent.PrecioVenta = dto.PrecioVenta;
-            ent.TipoVenta = dto.TipoVenta;
-            ent.UsuarioModificacion = user;
-            ent.FechaModificacion = DateTime.UtcNow;
+
+            if (await TienePago(dto.ContratoId))
+            {
+                //listar campos prohibidos en un dictionario
+                var CambiosNoPermitidos = new List<(string campo, bool cambio)>
+                {
+                    ("PrecioVenta", ent.PrecioVenta!=dto.PrecioVenta),
+                    ("TipoVenta", ent.TipoVenta!=dto.TipoVenta),
+                    ("CuotaMensual", ent.CuotaMensual!=dto.CuotaMensual),
+                    ("TasaAnual", ent.TasaAnual!=dto.TasaAnual),
+                    ("PlazoMeses", ent.PlazoMeses!=dto.PlazoMeses),
+                };
+
+                var cambios = CambiosNoPermitidos.Where(c => c.cambio).ToList(); //si en la tupla hay un true me regresara items que se encuentre
+                if (cambios.Any())
+                {
+                    var campos = string.Join(", ", cambios.Select(c => c.campo));
+                    throw new InvalidOperationException($"No se pueden modificar los siguientes campos porque el contrato ya tiene pagos: {campos}.");
+                }
+                //editar campos vendedor, fecha y estado contrato
+                ent.VendedorId = dto.VendedorId;
+                ent.FechaVenta = dto.FechaVenta;
+                //pagos completos? si es si entonces se podria editar contrato estado a finalizado automaticamente o dejar
+                var pagosCompletos = ent.MontoPagado >= ent.MontoTotal;
+                var estadosPermitidos = pagosCompletos
+                    ? new[] { "Finalizado", "Cancelado" }
+                    : new[] { "Cancelado", "EnMora", "Activo" };
+
+                if (!estadosPermitidos.Contains(dto.EstadoContrato))
+                {
+                    throw new InvalidOperationException($"El estado '{dto.EstadoContrato}' no es válido para este contrato en su situación actual.");
+                }
+                ent.UsuarioModificacion = user;
+                ent.FechaModificacion = DateTime.UtcNow;
+                ent.Estado = dto.EstadoContrato ?? "Sin Estado";
+
+            }
+            else
+            {
+
+                //si no tiene pago se puede cambiar todo expeto cliente y vehiculo
+                //se cambio el tipo de venta?
+
+                var estadosPermitido = dto.TipoVenta == "Financiada"
+                    ? new[] { "Cancelado", "Activo" }
+                    : new[] {  "Activo" };
+
+                if (!estadosPermitido.Contains(dto.EstadoContrato))
+                {
+                    throw new InvalidOperationException($"El estado '{dto.EstadoContrato}' no es válido para este contrato en su situación actual.");
+                }
+                ent.Estado = dto.EstadoContrato ?? "Sin Estado";
+                ent.FechaVenta = dto.FechaVenta;
+                ent.PrecioVenta = dto.PrecioVenta;
+                ent.UsuarioModificacion = user;
+                ent.FechaModificacion = DateTime.UtcNow;
+
+
+                //como deberia manejar los valores financiero?
+                if (dto.TipoVenta == "Contado")
+                {
+                    ent.TasaAnual = 0;
+                    ent.CuotaMensual = 0;
+                    ent.PlazoMeses = 0;
+                    ent.MontoTotal = dto.PrecioVenta;
+                    ent.TipoVenta = dto.TipoVenta;
+                }
+                else if (dto.TipoVenta == "Financiada")
+                {
+                    ent.TasaAnual = dto.TasaAnual ?? 0.0m;
+                    ent.CuotaMensual = dto.CuotaMensual ?? 0.0m;
+                    ent.PlazoMeses = dto.PlazoMeses ?? 0;
+                    ent.MontoTotal = (dto.PlazoMeses ?? 0) * (dto.CuotaMensual ?? 0);
+                    ent.TipoVenta = dto.TipoVenta;
+                }
+            }
+
             return await context.SaveChangesAsync() > 0;
+
         }
 
         public async Task<bool> Eliminar(int id, string user)
         {
+            // 1) Buscar el contrato por ID
             var ent = await context.Contratos.FindAsync(id)
                      ?? throw new KeyNotFoundException("Contrato no encontrado");
             ent.Activo = false;
             ent.UsuarioModificacion = user;
             ent.FechaModificacion = DateTime.UtcNow;
+
+            //debo restablecer el estado del vehículo a 1 (disponible)
+            var  vehiculo = await context.Vehiculos.FindAsync(ent.VehiculoId)
+                     ?? throw new KeyNotFoundException("Vehículo no encontrado");
+            vehiculo.Estado = 1; // Restablecer a disponible
+
+
             return await context.SaveChangesAsync() > 0;
         }
 
-
-        public async Task<string?> GuardarFirmaAsync(IFormFile? firmaFile)
+        public async Task<ContratoDto> CrearAsync(ContratoDto dto, string user)
         {
-            // 0) Validación temprana
-            if (firmaFile == null || firmaFile.Length == 0)
-                return null;
 
-            // 1) Carpeta en wwwroot (inyectada como IWebHostEnvironment env)
-            var uploads = Path.Combine(env.WebRootPath, "Firmas");
-            Directory.CreateDirectory(uploads);
+            //CARGAR DATA DEL VEHICULO PARA CAMBIAR EL ESTADO
 
-            // 2) Nombre único y seguro
-            //    Evita inyectar rutas o caracteres maliciosos.
-            var ext = Path.GetExtension(firmaFile.FileName);
-            var fileName = $"firma_{Guid.NewGuid()}{ext}";
-            var filePath = Path.Combine(uploads, fileName);
+            var vehiculo = context.Vehiculos.FirstOrDefault(c => c.VehiculoId == dto.VehiculoId) ?? throw new Exception("Error: no podemos asignar vehículo al contrato"); ;
+            // 2) Cambiar estado
+            vehiculo.Estado = 3;
+            //context.Vehiculos.Update(vehiculo); // <-- Asegura que el cambio se guarde
 
-            // 3) Guardar físico de forma asíncrona
-            await using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await firmaFile.CopyToAsync(stream);
-            }
-
-            // 4) Retornar URL relativa siempre en minúscula para evitar confusiones
-            return $"/Firmas/{fileName}".ToLowerInvariant();
-        }
-        public async Task<ContratoDto> CrearAsync(ContratoDto dto, string user, IFormFile? firmaFile)
-        {
-            // 1) Guardar la firma y asignar ruta al DTO
-            dto.FirmaDocumento = await GuardarFirmaAsync(firmaFile);
-
+            //calcular cuantos tiene del monto pagado
             // 2) Mapear DTO a entidad
             var ent = new Contrato
             {
@@ -131,13 +267,17 @@ namespace UNICAR_ADMIN.Servicios.Contrato_Services
                 FechaVenta = dto.FechaVenta,
                 PrecioVenta = dto.PrecioVenta,
                 TipoVenta = dto.TipoVenta,
-                FirmaDocumento = dto.FirmaDocumento,
                 FechaCreacion = DateTime.UtcNow,
                 UsuarioCreacion = user,
-                Activo = true
+                PlazoMeses = dto.PlazoMeses ?? 0,
+                TasaAnual = dto.TasaAnual ?? 0.0m,
+                CuotaMensual = dto.CuotaMensual ?? 0.0m,
+                MontoPagado = 0.0m, // Inicialmente no hay pagos
+                Activo = true,
+                MontoTotal= (dto.PlazoMeses ?? 0) * (dto.CuotaMensual ?? 0)
             };
 
-            // 3) Persistir
+           
             context.Contratos.Add(ent);
             await context.SaveChangesAsync();
 
@@ -218,30 +358,10 @@ namespace UNICAR_ADMIN.Servicios.Contrato_Services
             doc.Add(new Paragraph("Firma del Cliente:")
                 .SetFont(fontBold).SetFontSize(12));
 
-            if (!string.IsNullOrEmpty(contrato.FirmaDocumento))
-            {
-                var imgPath = Path.Combine(env.WebRootPath, contrato.FirmaDocumento.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                if (File.Exists(imgPath))
-                {
-                    var img = new Image(ImageDataFactory.Create(imgPath))
-                        .ScaleToFit(200, 100)
-                        .SetMarginTop(5)
-                        .SetMarginBottom(20);
-                    doc.Add(img);
-                }
-                else
-                {
-                    doc.Add(new Paragraph("  [Firma no encontrada]")
-                        .SetFont(font).SetFontSize(12)
-                        .SetFontColor(iText.Kernel.Colors.ColorConstants.RED)
-                        .SetMarginBottom(20));
-                }
-            }
-            else
-            {
-                doc.Add(new Paragraph("  __________________________")
+
+            doc.Add(new Paragraph("  __________________________")
                     .SetFont(font).SetFontSize(12).SetMarginBottom(20));
-            }
+
 
             // Cierra el documento
             doc.Close();
@@ -250,5 +370,58 @@ namespace UNICAR_ADMIN.Servicios.Contrato_Services
             return $"/contratos/{nombrePdf}";
         }
 
+
+
+        //llenaremos un dropdown con los clientes, vendedores y vehiculos activos
+        public async Task<IEnumerable<SelectListItem>> ObtenerClientesActivos()
+        {
+            return await context.Clientes
+                .Where(c => c.Activo == true)
+                .Select(x => new SelectListItem { Value = x.ClienteId.ToString(), Text = x.NombreCompleto })
+                .ToListAsync();
+        }
+        public async Task<IEnumerable<SelectListItem>> ObtenerVendedoresActivos()
+        {
+            return await context.Vendedores
+                .Where(c => c.Activo == true)
+                .Select(x => new SelectListItem { Value = x.VendedorId.ToString(), Text = x.NombreCompleto })
+                .ToListAsync();
+        }
+
+        // Si necesitas obtener vehículos activos, puedes implementar un método similar
+        public async Task<IEnumerable<SelectListItem>> ObtenerVehiculosActivos(bool editar)
+        {
+            if (editar)
+            {
+                return await context.Vehiculos.AsNoTracking()
+                .Where(v => v.Activo == true &&
+                v.Estado == 3)
+                .Select(x => new SelectListItem { Value = x.VehiculoId.ToString(), Text = $"{x.Vin}-{x.Marca} {x.Modelo} ({x.Anio})" })
+                .ToListAsync();
+
+            }
+                return await context.Vehiculos.AsNoTracking()
+                    .Where(v => v.Activo == true &&
+                    v.Estado != 4 &&
+                    v.Estado != 3)
+                    .Select(x => new SelectListItem { Value = x.VehiculoId.ToString(), Text = $"{x.Vin}-{x.Marca} {x.Modelo} ({x.Anio})" })
+                    .ToListAsync();
+        }
+
+        public async Task<ListaVehiculoDTO> ObtenerVehiculosPorContrato(int id)
+        {
+          var vehiculo=await repositorio_Vehiculo.ObtenerVehiculosPorContrato(id);
+            if (vehiculo == null)
+            {
+                throw new KeyNotFoundException($"Vehículo con contrato {id} no encontrado.");
+            }
+            return vehiculo;
+        }
+
+        public async Task<bool> TienePago(int idContrato) 
+        {
+            var contratoDetalle = await context.PagosContratos.AnyAsync(x => x.ContratoId == idContrato);
+            return contratoDetalle;
+        }
     }
 }

@@ -1,11 +1,14 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using Rotativa.AspNetCore;
 using UNICAR_ADMIN.Data;
 using UNICAR_ADMIN.Models.Renta;
 using UNICAR_ADMIN.Servicios.Contrato_Services;
 using UNICAR_ADMIN.Servicios.Custom_Services;
 using UNICAR_ADMIN.Servicios.LocalImage_Services;
 using UNICAR_ADMIN.Servicios.Proveedores_Services;
+using UNICAR_ADMIN.Servicios.Reportes_Services;
 using UNICAR_ADMIN.Servicios.Vehiculos_Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +25,7 @@ builder.Services.AddDbContext<RentaDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
-//     .AddRoles<IdentityRole>()                         // <� esto es clave
+//     .AddRoles<IdentityRole>()                         // <— esto es clave
 //    .AddEntityFrameworkStores<ApplicationDbContext>(); ;
 builder.Services
     .AddIdentity<IdentityUser, IdentityRole>(opts => {
@@ -30,7 +33,7 @@ builder.Services
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders()
-    .AddDefaultUI();            // <-- monta las p�ginas Razor de Identity
+    .AddDefaultUI();            // <-- monta las páginas Razor de Identity
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();  
@@ -39,6 +42,11 @@ builder.Services.AddScoped<IRepositorio_Proveedores, Repositorio_Proveedores>();
 builder.Services.AddScoped<ILocalImageService, LocalImageService>();
 builder.Services.AddScoped<ICustomeServices, CustomeServices>();
 builder.Services.AddScoped<IContratoServices, ContratoServices>();
+builder.Services.AddScoped<IReportes_Services, Reportes_Services>();
+
+// ─── Configura la licencia de EPPlus ───
+// Para uso **no comercial** personal:
+ExcelPackage.License.SetNonCommercialPersonal("Jefferson");
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -53,11 +61,12 @@ else
 app.UseStaticFiles();
 
 app.UseRouting();
-// 1) Primero autenticaci�n
+// 1) Primero autenticación
 app.UseAuthentication();
-// 2) Luego autorizaci�n
+// 2) Luego autorización
 app.UseAuthorization();
 
+RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
 
 app.MapControllerRoute(
     name: "default",

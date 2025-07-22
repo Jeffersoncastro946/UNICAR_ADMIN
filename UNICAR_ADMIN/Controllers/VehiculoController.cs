@@ -36,14 +36,24 @@ namespace UNICAR_ADMIN.Controllers
         {
             return View();
         }
+        public ActionResult IndexVendido()
+        {
+            return View();
+        }
 
         // DataTables: obtener todos
         public async Task<ActionResult> ObtenerVehiculos()
         {
             var listado = await Repositorio.ObtenerTodoVehiculo();
+            listado=listado.Where(v => v.Estado != "Vendido").ToList(); // Excluir los vendidos (EstadoID 3)
             return Json(new { data = listado });
         }
-
+        public async Task<ActionResult> ObtenerVehiculosVendidos()
+        {
+            var listado = await Repositorio.ObtenerTodoVehiculo();
+            var listadoVendidos = listado.Where(v => v.Estado == "Vendido").ToList(); // EstadoID 2 = Vendido
+            return Json(new { data = listadoVendidos });
+        }
         // Detalles vehículo (vista completa)
         public ActionResult Details(int id)
         {

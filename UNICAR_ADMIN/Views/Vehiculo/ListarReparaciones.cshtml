@@ -45,6 +45,8 @@
                         <th class="dt-center"> VIN</th>
                         <th class="dt-center">Marca</th>
                         <th class="dt-center">Modelo</th>
+                        <th class ="dt-center">Reporte</th>
+
                     </tr>
                 </thead>
             </table>
@@ -82,8 +84,19 @@
               },
               { data: 'vin'    },
               { data: 'marca'  },
-              { data: 'modelo' }
-            ],
+              { data: 'modelo' },
+              {
+                 className: 'details-control text-center',
+                 data: "vehiculoId",
+                 render: function (data, type, row) {
+                      return `
+                        <a href="/Reportes/ReporteMantenimientos?vehiculoId=${row.vehiculoId}"
+                           class="btn btn-sm btn-info me-1">
+                           <i class="bi bi-eye"></i>
+                        </a>`;
+                    }
+                  }
+                ],
             order: [[1,'asc']],
             language: { /* tu config de idioma */ }
           });
@@ -94,17 +107,17 @@
            const tr  = $(this).closest('tr');
            const row = dt.row(tr);
            const id  = row.data().vehiculoId;
-           if (row.child.isShown()) {
-             row.child.hide();
-             tr.find('i').removeClass('bi-dash-circle-fill text-danger')
-                         .addClass('bi-plus-circle-fill text-success');
-           } else {
-             // invocamos al helper con todas las reps de ese vehículo
-             const reps = window.reparacionesGroup[id] || [];
-             row.child(format(reps)).show();
-             tr.find('i').removeClass('bi-plus-circle-fill text-success')
-                         .addClass('bi-dash-circle-fill text-danger');
-           }
+           const $icon = $(this).find('i'); // Solo el ícono de la celda de control
+                if (row.child.isShown()) {
+            row.child.hide();
+            $icon.removeClass('bi-dash-circle-fill text-danger')
+                 .addClass('bi-plus-circle-fill text-success');
+        } else {
+            const reps = window.reparacionesGroup[id] || [];
+            row.child(format(reps)).show();
+            $icon.removeClass('bi-plus-circle-fill text-success')
+                 .addClass('bi-dash-circle-fill text-danger');
+        }
          });
 
          

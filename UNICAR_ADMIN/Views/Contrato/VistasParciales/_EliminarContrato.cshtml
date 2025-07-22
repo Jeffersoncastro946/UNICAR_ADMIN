@@ -1,0 +1,32 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.ContratoDto
+
+<div class="text-center py-4">
+    <!-- Icono grande de “peligro” -->
+    <i class="bi bi-exclamation-triangle-fill fs-1 text-danger mb-3"></i>
+
+    <!-- Mensaje -->
+    <p class="fs-5">
+        ¿Estás seguro de que quieres <strong>eliminar</strong><br />
+        Contrato con el cliente <strong>@Model.Cliente</strong>
+        este contrato fue registrado el <strong>@Model.FechaVenta.ToString("dd/MM/yyyy")
+        </strong> con un precio de venta de <strong>@Model.PrecioVenta.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</strong>.<br />
+        y vendido por <strong>@Model.Vendedor</strong>.<br />
+        <br />
+        <small>(Vehiculo: <code>@Model.vehiculo</code>)</small>?
+    </p>
+
+    <!-- Botones dentro del body -->
+    <div class="mt-4">
+        <form id="formEliminarContrato" asp-action="EliminarContrato" enctype="multipart/form-data" method="post" class="d-inline">
+            <input type="hidden" asp-for="ContratoId" />
+            <button type="submit" class="btn btn-lg btn-danger me-2">
+                <i class="bi bi-trash me-1"></i> Eliminar
+            </button>
+        </form>
+        <button type="button"
+                class="btn btn-lg btn-outline-secondary"
+                data-bs-dismiss="modal">
+            Cancelar
+        </button>
+    </div>
+</div>

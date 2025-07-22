@@ -1,0 +1,20 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.Reportes.ReporteHeaderViewModel
+
+@* Views/Shared/_ReporteHeader.cshtml *@
+<header style="display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#1e1f3b;color:#fff;">
+    <!-- Logo -->
+    <div class="header-logo">
+        <img src="~/logo_unicar_Blanco.jpg" alt="UNICAR" style="height:80px;display:block;" />
+    </div>
+
+    <!-- Centro: Título y subtítulo/rango -->
+    <div class="header-center" style="flex:1;text-align:center;">
+        <h1 style="margin:0;font-size:2.5rem;font-weight:800;">@Model.Titulo</h1>
+        <p style="margin:0;font-size:1.1rem;opacity:.9;">@Model.Subtitulo</p>
+    </div>
+
+    <!-- Fecha -->
+    <div class="header-date" style="text-align:right;min-width:180px;opacity:.9;">
+        <p style="margin:0;">Generado el <strong>@Model.FechaEmision.ToString("dd/MM/yyyy")</strong></p>
+    </div>
+</header>

@@ -1,0 +1,115 @@
+﻿@* @model UNICAR_ADMIN.Models.DTOS.Reportes.FiltroContratosEstadoDto
+@{
+    Layout = null;
+    var hoy = DateTime.Now;
+    var rango = (Model.FechaInicio.HasValue || Model.FechaFin.HasValue)
+               ? $"({Model.FechaInicio:dd/MM/yyyy} – {Model.FechaFin:dd/MM/yyyy})"
+               : "(todas las fechas)";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI",sans-serif;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 1rem 2rem;
+            background: #1e1f3b;
+            color: #fff;
+            box-sizing: border-box;
+        }
+
+        /* IZQUIERDA: título + estado/rango */
+        .header-left {
+            flex: 1;
+        }
+
+            .header-left h1 {
+                margin: 0 0 0.5rem;
+                font-size: 2rem; /* más grande */
+                font-weight: 800;
+                line-height: 1.2;
+            }
+
+            .header-left .subinfo {
+                margin: 0;
+                font-size: 1rem; /* más grande */
+                opacity: 0.9;
+            }
+
+        /* DERECHA: logo + fecha */
+        .header-right {
+            text-align: right;
+        }
+
+            .header-right .logo-box img {
+                height: 80px; /* más grande */
+                width: auto;
+                margin-bottom: 0.5rem;
+            }
+
+            .header-right .header-date {
+                margin: 0;
+                font-size: 1rem; /* más grande */
+                opacity: 0.9;
+            }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <h1>Reporte de Contratos por Estado</h1>
+            <p class="subinfo">
+                Estado: <strong>@Model.Estado</strong> @rango
+            </p>
+        </div>
+        <div class="header-right">
+            <div class="logo-box">
+                <img src="@Url.Content("~/logo_unicar.png")" alt="UNICAR" />
+            </div>
+            <p class="header-date">
+                @(hoy.ToString("dd/MM/yyyy")) &nbsp; @(hoy.ToString("HH:mm"))
+            </p>
+        </div>
+    </header>
+</body>
+</html>
+ *@
+
+@model UNICAR_ADMIN.Models.DTOS.Reportes.FiltroContratosEstadoDto
+@{
+    Layout = null;
+    var hoy = DateTime.Now;
+    var rango = (Model.FechaInicio.HasValue || Model.FechaFin.HasValue)
+               ? $"({Model.FechaInicio:dd/MM/yyyy} – {Model.FechaFin:dd/MM/yyyy})"
+               : "(todas las fechas)";
+}
+<header style="display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#1e1f3b;color:#fff;">
+    <!-- Logo izquierda -->
+    <div class="header-logo">
+        <img src="~/logo_unicar_Blanco.jpg" alt="UNICAR" style="height:80px;display:block;" />
+    </div>
+
+
+    <!-- Centro: Título y subtítulo/rango -->
+    <div class="header-center" style="flex:1;text-align:center;">
+        <h1 style="margin:0;font-size:2.2rem;font-weight:800;">Reporte de Contratos por Estado</h1>
+        <p style="margin:0;font-size:1.15rem;opacity:.9;">
+            Estado: <strong>@Model.Estado</strong> @rango
+        </p>
+    </div>
+
+    <!-- Derecha: Fecha -->
+    <div class="header-date" style="text-align:right;min-width:180px;opacity:.9;">
+        <p style="margin:0;">Generado el <strong>@hoy.ToString("dd/MM/yyyy")</strong></p>
+        
+    </div>
+</header>

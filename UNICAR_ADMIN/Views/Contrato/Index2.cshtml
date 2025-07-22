@@ -1,0 +1,147 @@
+﻿@{
+    ViewData["Title"] = "Historial de Contratos";
+
+}
+<div class="container mt-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2 class="text-dark mb-0">Historial de Contratos</h2>
+        </div>
+    </div>
+
+    <div class="table-responsive shadow-sm">
+        <table id="Tabla" class="table table-bordered table-hover text-bg-danger text-center align-middle" style="min-width:800px">
+            <thead>
+                <tr>
+                    <th></th> <!-- Para el icono de expandir o detalles -->
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Tipo Venta</th>
+                    <th>Precio Venta</th>
+                    <th>Pagado</th>
+                    <th>Saldo</th>
+                    <th>Estado</th>
+                    <th>Último Pago</th>
+                   @*  <th class="text-center">Acciones</th> *@
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        $(function () {
+            // 2) Inicializar DataTable
+            let tabla = $("#Tabla").DataTable({
+                ajax: {
+                    url: '@Url.Action("HistorialContratos", "Contrato")',
+                    dataSrc: "data",
+                },
+                columns: [
+                    {
+                        className: "dt-control-detail text-center",
+                        orderable: false,
+                        data: null,
+                        defaultContent: '<i class="bi bi-plus-circle-fill text-success fs-5"></i>',
+                    },
+                    { data: "contratoId" },
+                    { data: "cliente" },
+                    { data: "tipoVenta" },
+                    {
+                        data: "precioContrato",
+                        render: (d) => `L ${d.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`,
+                    },
+                    {
+                        data: "pagado",
+                          render: (d) => `L ${d?.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`,
+                    },
+                    {
+                        // 🔢 Calculamos el saldo en el frontend
+                        data: null,
+                        render: function (data, type, row) {
+                            const saldo = parseFloat(row.precioContrato) - parseFloat(row.pagado);
+                            return `L ${saldo.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
+                        }
+                    },
+                    { data: "estadoContrato",
+                      render: function(data, type, row){
+                          let badge = '';
+                            switch (data) {
+                                case 'Activo': badge = 'success'; break;
+                                case 'Finalizado': badge = 'primary'; break;
+                                case 'EnMora': badge = 'warning'; break;
+                                case 'Cancelado': badge = 'danger'; break;
+                                default: badge = 'secondary'; break;
+                            }
+                         return `<span class="badge bg-${badge}">${data}</span>`;
+                      }
+                    },
+                    {
+                        data: "ultimoPago",
+                        render: function(data, type, row){
+                            if(!data) return '--';
+                            const fecha=new Date(data);
+                            return fecha.toLocaleDateString('es-ES');
+                        }
+                    },
+                ],
+                columnDefs: [
+                {
+                    targets: [1, 6], // Índices de columnas que querés centrar (0 = ID, 3 = Precio)
+                    className: 'text-center'
+                } ],
+                responsive: true,
+                language: {
+                    lengthMenu: "Mostrar _MENU_ registros por página",
+                    zeroRecords: "No se encontraron registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                    infoFiltered: "(filtrado de _MAX_ registros totales)",
+                    search: "Buscar:",
+                    loadingRecords: "Cargando...",
+                    processing: "Procesando...",
+                    paginate: {
+                        first: "Primero",
+                        last: "Último",
+                        next: "Siguiente",
+                        previous: "Anterior",},
+                    decimal: ",",
+                    thousands: ".", },
+             });
+
+              
+        // Lógica para expandir filas
+                $("#Tabla tbody").on('click', 'td.dt-control-detail', function () {
+                    const tr = $(this).closest('tr');
+                    const row = tabla.row(tr);
+                    const $iconCell = $(this); // Para cambiar el ícono
+
+                    if (row.child.isShown()) {
+                        // Si ya está expandido, lo colapsamos
+                        row.child.hide();
+                        tr.removeClass('shown');
+                        $iconCell.html('<i class="bi bi-plus-circle-fill text-success fs-5"></i>');
+                    } else {
+                        // Mostrar un spinner mientras carga
+                        row.child('<div class="text-muted">Cargando detalle...</div>').show();
+                        tr.addClass('shown');
+                         $iconCell.html('<i class="bi bi-dash-circle-fill text-danger fs-5"></i>');
+
+                        // Hacer la petición AJAX
+                        const data = row.data();
+
+                        $.ajax({
+                            url: `/Contrato/DetalleContratoParcial/${data.contratoId}`, // <-- asegúrate que sea "data.id" o "data.contratoId" según tu modelo
+                            method: 'GET',
+                            success: function (html) {
+                                row.child(html).show();
+                            },
+                            error: function () {
+                                row.child('<div class="text-danger">Error al cargar detalle</div>').show();
+                            }
+                        });
+                    }
+                });
+        });
+    </script>
+}

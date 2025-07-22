@@ -15,6 +15,18 @@ public partial class RentaDbContext : DbContext
     {
     }
 
+    public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
+
+    public virtual DbSet<AspNetRoleClaim> AspNetRoleClaims { get; set; }
+
+    public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
+
+    public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; }
+
+    public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; }
+
+    public virtual DbSet<AspNetUserToken> AspNetUserTokens { get; set; }
+
     public virtual DbSet<Cliente> Clientes { get; set; }
 
     public virtual DbSet<Contrato> Contratos { get; set; }
@@ -29,6 +41,8 @@ public partial class RentaDbContext : DbContext
 
     public virtual DbSet<Pago> Pagos { get; set; }
 
+    public virtual DbSet<PagosContrato> PagosContratos { get; set; }
+
     public virtual DbSet<Proveedore> Proveedores { get; set; }
 
     public virtual DbSet<Reparacione> Reparaciones { get; set; }
@@ -42,6 +56,78 @@ public partial class RentaDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AspNetRole>(entity =>
+        {
+            entity.HasIndex(e => e.NormalizedName, "RoleNameIndex")
+                .IsUnique()
+                .HasFilter("([NormalizedName] IS NOT NULL)");
+
+            entity.Property(e => e.Name).HasMaxLength(256);
+            entity.Property(e => e.NormalizedName).HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<AspNetRoleClaim>(entity =>
+        {
+            entity.HasIndex(e => e.RoleId, "IX_AspNetRoleClaims_RoleId");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.AspNetRoleClaims).HasForeignKey(d => d.RoleId);
+        });
+
+        modelBuilder.Entity<AspNetUser>(entity =>
+        {
+            entity.HasIndex(e => e.NormalizedEmail, "EmailIndex");
+
+            entity.HasIndex(e => e.NormalizedUserName, "UserNameIndex")
+                .IsUnique()
+                .HasFilter("([NormalizedUserName] IS NOT NULL)");
+
+            entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
+            entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
+            entity.Property(e => e.UserName).HasMaxLength(256);
+
+            entity.HasMany(d => d.Roles).WithMany(p => p.Users)
+                .UsingEntity<Dictionary<string, object>>(
+                    "AspNetUserRole",
+                    r => r.HasOne<AspNetRole>().WithMany().HasForeignKey("RoleId"),
+                    l => l.HasOne<AspNetUser>().WithMany().HasForeignKey("UserId"),
+                    j =>
+                    {
+                        j.HasKey("UserId", "RoleId");
+                        j.ToTable("AspNetUserRoles");
+                        j.HasIndex(new[] { "RoleId" }, "IX_AspNetUserRoles_RoleId");
+                    });
+        });
+
+        modelBuilder.Entity<AspNetUserClaim>(entity =>
+        {
+            entity.HasIndex(e => e.UserId, "IX_AspNetUserClaims_UserId");
+
+            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserClaims).HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<AspNetUserLogin>(entity =>
+        {
+            entity.HasKey(e => new { e.LoginProvider, e.ProviderKey });
+
+            entity.HasIndex(e => e.UserId, "IX_AspNetUserLogins_UserId");
+
+            entity.Property(e => e.LoginProvider).HasMaxLength(128);
+            entity.Property(e => e.ProviderKey).HasMaxLength(128);
+
+            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserLogins).HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<AspNetUserToken>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name });
+
+            entity.Property(e => e.LoginProvider).HasMaxLength(128);
+            entity.Property(e => e.Name).HasMaxLength(128);
+
+            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserTokens).HasForeignKey(d => d.UserId);
+        });
+
         modelBuilder.Entity<Cliente>(entity =>
         {
             entity.HasKey(e => e.ClienteId).HasName("PK__Clientes__71ABD08776F3FD69");
@@ -67,13 +153,23 @@ public partial class RentaDbContext : DbContext
             entity.HasKey(e => e.ContratoId).HasName("PK__Contrato__B238E9732310551C");
 
             entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.CuotaMensual).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Activo");
             entity.Property(e => e.FechaCreacion)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
             entity.Property(e => e.FechaVenta).HasColumnType("datetime");
-            entity.Property(e => e.FirmaDocumento).HasMaxLength(200);
+            entity.Property(e => e.MontoPagado).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MontoTotal).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PlazoMeses).HasDefaultValue(12);
             entity.Property(e => e.PrecioVenta).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TasaAnual)
+                .HasDefaultValue(36.00m)
+                .HasColumnType("decimal(5, 2)");
             entity.Property(e => e.TipoVenta).HasMaxLength(50);
             entity.Property(e => e.UsuarioCreacion).HasMaxLength(100);
             entity.Property(e => e.UsuarioModificacion).HasMaxLength(100);
@@ -183,6 +279,19 @@ public partial class RentaDbContext : DbContext
             entity.HasOne(d => d.Financiamiento).WithMany(p => p.Pagos)
                 .HasForeignKey(d => d.FinanciamientoId)
                 .HasConstraintName("FK__Pagos__Financiam__693CA210");
+        });
+
+        modelBuilder.Entity<PagosContrato>(entity =>
+        {
+            entity.HasKey(e => e.PagoContratoId).HasName("PK__PagosCon__8C0E2A4624C6426F");
+
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.MontoPagado).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Observacion).HasMaxLength(250);
+
+            entity.HasOne(d => d.Contrato).WithMany(p => p.PagosContratos)
+                .HasForeignKey(d => d.ContratoId)
+                .HasConstraintName("FK_PagoContrato_Contrato");
         });
 
         modelBuilder.Entity<Proveedore>(entity =>

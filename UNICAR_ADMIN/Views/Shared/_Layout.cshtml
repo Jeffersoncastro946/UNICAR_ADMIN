@@ -8,6 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - UNICAR Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 
     <!-- Bootstrap CSS primero -->
     <link rel="stylesheet"
@@ -24,9 +25,20 @@
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/datatable/Tabla.css" asp-append-version="true" />
-
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    @* preubas de datatable  *@
+    <!-- DataTables Bootstrap 5 CSS -->
+<link
+  href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css"
+  rel="stylesheet" />
 
+<!-- DataTables Buttons Bootstrap 5 CSS -->
+<link
+  href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css"
+  rel="stylesheet"/>
+
+    @* fin de pruebas *@
+     @RenderSection("Styles", required: false)
 </head>
 <body class="bg-light">
     <div class="d-flex vh-100">
@@ -75,12 +87,7 @@
                                             <span class="ms-2 sidebar-text">Listar Clientes</span>
                                         </a>
                                     </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link text-white" asp-controller="Cliente" asp-action="CrearCliente">
-                                            <i class="bi bi-plus-circle"></i>
-                                            <span class="ms-2 sidebar-text">Crear Cliente</span>
-                                        </a>
-                                    </li>
+
                                 </ul>
                             </div>
                         </li>
@@ -104,11 +111,24 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Vehiculo" asp-action="IndexVendido">
+                                            <i class="bi bi-car-front"></i>
+                                            <i class="bi bi-patch-check-fill text-warning"></i>
+                                            <span class="ms-2 sidebar-text">Vehículos Vendidos</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Reportes" asp-action="InventarioVehiculosDisponiblesView">
+                                            <i class="bi bi-box""></i>
+                                            <span class="ms-2 sidebar-text">Inventario Vehículos</span>
+                                        </a>
+                                    </li>
+                                    @* <li class="nav-item">
                                         <a class="nav-link text-white" asp-controller="Vehiculo" asp-action="CrearVehiculo">
                                             <i class="bi bi-plus-circle"></i>
                                             <span class="ms-2 sidebar-text">Crear Vehículo</span>
                                         </a>
-                                    </li>
+                                    </li> *@
                                 </ul>
                             </div>
                         </li>
@@ -155,19 +175,54 @@
                                     <li class="nav-item">
                                         <a class="nav-link text-white" asp-controller="Contrato" asp-action="Index">
                                             <i class="bi bi-list"></i>
-                                            <span class="ms-2 sidebar-text">Listar Contratos</span>
+                                            <span class="ms-2 sidebar-text">Contratos Activos</span>
                                         </a>
                                     </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link text-white" asp-controller="Contrato" asp-action="CrearContrato">
-                                            <i class="bi bi-plus-circle"></i>
-                                            <span class="ms-2 sidebar-text">Crear Contrato</span>
+                                     <li class="nav-item">
+                                        <a class="nav-link text-white" asp-controller="Contrato" asp-action="Index2">
+                                            <i class="bi bi-clock-history"></i>
+                                            <span class="ms-2 sidebar-text">Historial de Contratos</span>
                                         </a>
                                     </li>
+                                    
                                 </ul>
                             </div>
                         </li>
 
+                         <!-- Módulo Reportes con Submenú -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                               data-bs-toggle="collapse" href="#ReporteSubmenu" role="button" aria-expanded="false" aria-controls="ReporteSubmenu">
+                                <span>
+                                    <i class="bi bi-file-earmark-bar-graph"></i>
+                                    <span class="ms-2 sidebar-text">Reportes</span>
+                                </span>
+                                <i class="bi bi-chevron-down small"></i>
+                            </a>
+                            <div class="collapse" id="ReporteSubmenu">
+                            <ul class="nav flex-column ms-4">
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-controller="Reportes" asp-action="VentasPorPeriodo">
+                                        <i class="bi bi-bar-chart-line"></i>
+                                        <span class="ms-2 sidebar-text">Ventas</span>
+                                    </a>
+                                    <a class="nav-link text-white" asp-controller="Reportes" asp-action="ClientesCrecimiento">
+                                        <i class="bi bi-people"></i>
+                                        <span class="ms-2 sidebar-text">Clientes</span>
+                                    </a>
+                                    <a class="nav-link text-white" asp-controller="Reportes" asp-action="VehiculosRezago">
+                                        <i class="bi bi-clock-history"></i>
+                                        <span class="ms-2 sidebar-text">Inventario &gt;90 días</span>
+                                    </a>
+                                    <a class="nav-link text-white" asp-controller="Reportes" asp-action="ReparacionesAlCincuentaPerc">
+                                        <i class="bi bi-tools"></i>
+                                        <span class="ms-2 sidebar-text">Reparaciones Excesivas</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        </li>
                         <!-- Agregar más módulos según sea necesario -->
                     }
                 </ul>
@@ -245,8 +300,27 @@
     <!--  Day.js  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
 
+    @* reporte *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    @* btn de datatable *@
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<!-- Buttons core -->
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<!-- Adapter para Bootstrap 5 -->
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+<!-- Dependencia para Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- Export HTML5 (CSV, Excel, PDF de pdfmake) -->
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+
+
+<!--Graficos-->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="~/js/site.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+ 
 </body>
 
 </html>

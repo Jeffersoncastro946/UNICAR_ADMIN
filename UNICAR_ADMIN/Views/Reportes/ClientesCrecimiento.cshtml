@@ -1,0 +1,269 @@
+﻿@using UNICAR_ADMIN.Models.DTOS.Reportes
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var headerVm = (ReporteHeaderViewModel)ViewData["Header"]!;
+    int anio = (int)ViewBag.Anio;
+}
+<style>
+    /* ======= TABLAS DE REPORTE ======= */
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.2rem 0 0 0;
+        font-size: 15px;
+        background: white;
+    }
+
+        .report-table th, .report-table td {
+            padding: 7px 12px;
+            border: 1px solid #e4e4e4;
+            vertical-align: middle;
+        }
+
+        .report-table thead th {
+            background: #6639B3;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 4px solid #ec4899;
+            padding-top: 9px;
+            padding-bottom: 9px;
+            letter-spacing: 0.3px;
+        }
+
+        .report-table tbody tr:nth-child(even) {
+            background: #f7f8fc;
+        }
+
+    .text-end {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-start {
+        text-align: left;
+    }
+
+    /* KPI TITLES MÁS RESALTADOS */
+    .kpi-card .small.fw-bold {
+        color: #7D3C98;
+        font-weight: 700 !important;
+        letter-spacing: 0.1px;
+    }
+
+    /* Para menos espacio debajo del título Detalle mensual */
+    .mb-2 {
+        margin-bottom: 0.3rem !important;
+    }
+</style>
+
+<div class="container py-4">
+
+    @await Html.PartialAsync("_ReporteHeaderGeneral", headerVm)
+
+    <form method="get" class="row g-2 align-items-end mb-4">
+        <div class="col-auto">
+            <label class="form-label" for="anio">Año:</label>
+            <select id="anio" name="anio" class="form-select">
+                @{
+                    int current = DateTime.Today.Year;
+                    @foreach (var y in Enumerable.Range(current - 5, 6).Reverse())
+                    {
+                        if (y == anio)
+                        {
+                            @:
+                            <option value="@y" selected>@y</option>
+                        }
+                        else
+                        {
+                            @:
+                            <option value="@y">@y</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" type="submit">Ver</button>
+        </div>
+    </form>
+
+    <!-- KPI CARDS -->
+    <div class="row g-3 mb-4" id="kpis">
+        <div class="col-sm-3">
+            <div class="kpi-card p-3 border rounded bg-white shadow-sm">
+                <div class="small fw-bold text-muted">Clientes activos</div>
+                <div class="fs-3 fw-semibold" id="kpiActivos">—</div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="kpi-card p-3 border rounded bg-white shadow-sm">
+                <div class="small fw-bold text-muted">Nuevos en @anio</div>
+                <div class="fs-3 fw-semibold" id="kpiNuevosAnio">—</div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="kpi-card p-3 border rounded bg-white shadow-sm">
+                <div class="small fw-bold text-muted">Nuevos mes actual</div>
+                <div class="fs-3 fw-semibold" id="kpiNuevosMes">—</div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="kpi-card p-3 border rounded bg-white shadow-sm">
+                <div class="small fw-bold text-muted">Crecimiento mes (%)</div>
+                <div class="fs-3 fw-semibold" id="kpiCrecimiento">—</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="border rounded bg-white p-3 shadow-sm">
+                <h6 class="fw-semibold mb-3">Nuevos clientes por mes (@anio)</h6>
+                <canvas id="chartNuevos" height="140"></canvas>
+            </div>
+
+            <div class="border rounded bg-white p-3 shadow-sm mt-4">
+                <h6 class="fw-semibold mb-3">Clientes acumulados (@anio)</h6>
+                <canvas id="chartAcumulado" height="140"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="border rounded bg-white p-3 shadow-sm">
+                <h6 class="fw-semibold mb-2" style="margin-bottom: 0.3rem !important;">Detalle mensual</h6>
+                <table class="report-table" id="tablaDetalle">
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th class="text-end">Nuevos</th>
+                            <th class="text-end">Acum.</th>
+                            <th class="text-end">% Var</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Se llena con JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (async function(){
+            const anio = '@anio';
+            const url  = '@Url.Action("ClientesCrecimientoJson", "Reportes")?anio=' + anio;
+            const res  = await fetch(url);
+            const data = await res.json();
+
+            // KPIs
+            document.getElementById('kpiActivos').textContent      = data.clientesActivos.toLocaleString();
+            document.getElementById('kpiNuevosAnio').textContent   = data.nuevosAnio.toLocaleString();
+            document.getElementById('kpiNuevosMes').textContent    = data.nuevosMesActual.toLocaleString();
+            const kpiCrecimiento = document.getElementById('kpiCrecimiento');
+            if (data.crecimientoMesActualPct == null) {
+              kpiCrecimiento.textContent = '—';
+              kpiCrecimiento.style.color = '';
+            } else if (data.crecimientoMesActualPct > 0) {
+              kpiCrecimiento.textContent = '↑ ' + data.crecimientoMesActualPct.toFixed(1) + '%';
+              kpiCrecimiento.style.color = '#28a745';
+            } else if (data.crecimientoMesActualPct < 0) {
+              kpiCrecimiento.textContent = '↓ ' + Math.abs(data.crecimientoMesActualPct).toFixed(1) + '%';
+              kpiCrecimiento.style.color = '#d9534f';
+            } else {
+              kpiCrecimiento.textContent = '0.0%';
+              kpiCrecimiento.style.color = '';
+            }
+
+            // Serie
+            const meses      = data.series.map(x => x.etiqueta);
+            const nuevos     = data.series.map(x => x.nuevos);
+            const acumulados = data.series.map(x => x.acumulado);
+
+            // Tabla
+            const tb = document.querySelector('#tablaDetalle tbody');
+            tb.innerHTML = ""; // Limpia antes de llenar por si acaso
+            data.series.forEach(x => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td>${x.etiqueta}</td>
+                  <td class="text-end">${x.nuevos}</td>
+                  <td class="text-end">${x.acumulado}</td>
+                  <td class="text-end" style="color: ${x.crecimientoPct < 0 ? '#d9534f' : '#28a745'};">
+                    ${
+                      x.crecimientoPct == null
+                        ? '—'
+                        : (x.crecimientoPct > 0
+                            ? '↑ ' + x.crecimientoPct.toFixed(1) + '%'
+                            : (x.crecimientoPct < 0
+                                ? '↓ ' + Math.abs(x.crecimientoPct).toFixed(1) + '%'
+                                : '0.0%'))
+                    }
+                  </td>
+                `;
+                tb.appendChild(tr);
+            });
+
+            // Paleta para gráficos
+            const verde = 'rgba(40,167,69,1)';
+            const verdeFill = 'rgba(40,167,69,0.15)';
+            const morado = 'rgba(102,57,179,1)';
+            const moradoFill = 'rgba(102,57,179,0.15)';
+
+            // Chart Nuevos
+            new Chart(document.getElementById('chartNuevos').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Nuevos',
+                        data: nuevos,
+                        tension: .3,
+                        borderColor: morado,
+                        backgroundColor: moradoFill,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: morado
+                    }]
+                },
+                options: {
+                    responsive:true,
+                    plugins: { legend: { display:false }},
+                    scales: {
+                        y: { beginAtZero:true, title:{ display:true, text:'Clientes' } }
+                    }
+                }
+            });
+
+            // Chart Acumulado
+            new Chart(document.getElementById('chartAcumulado').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Acumulado',
+                        data: acumulados,
+                        tension: .35,
+                        borderColor: verde,
+                        backgroundColor: verdeFill,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: verde
+                    }]
+                },
+                options: {
+                    responsive:true,
+                    plugins: { legend: { display:false }},
+                    scales: {
+                        y: { beginAtZero:true, title:{ display:true, text:'Total' } }
+                    }
+                }
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,376 @@
+﻿@using UNICAR_ADMIN.Models.DTOS.Reportes
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var headerVm = (ReporteHeaderViewModel)ViewData["Header"]!;
+}
+<div class="container py-4">
+    @await Html.PartialAsync("_ReporteHeaderGeneral", headerVm)
+
+    <!-- KPIs -->
+    <div id="kpis" class="row g-4 mb-4"></div>
+
+    <div class="mb-4">
+        <button id="btn-exportar" class="btn btn-outline-primary ms-2">
+            📄 Exportar a PDF
+        </button>
+    </div>
+
+    <!-- Heat Strip + Tabla rangos -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Detalle de unidades con más de 90 días en stock</h5>
+            <div id="heatStripWrapper" class="mb-3">
+                <div id="heatStrip" class="heat-strip"></div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0 tabla-rangos">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Rango</th>
+                            <th class="text-end">Unidades</th>
+                            <th class="text-end">% del grupo</th>
+                            <th class="text-end">Valor (L)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyRangos"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle vehículos -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Detalle de vehículos (&gt;90 días)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover tabla-detalle">
+                    <thead>
+                        <tr>
+                            <th class="text-center">VIN</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th class="text-center">Año</th>
+                            <th class="text-center">Días</th>
+                            <th class="text-center">Rango</th>
+                            <th class="text-end">Precio</th>
+                            <th class="text-center">Ingreso</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyVehiculos"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* ==== DASHBOARD STYLES ==== */
+
+        /* KPIs - Cards con espacio */
+        .kpi-box {
+            background: #fff;
+            border: 1px solid #ececf5;
+            border-radius: 14px;
+            padding: 1.1rem 1.3rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            flex: 1 1 180px;
+            min-width: 180px;
+            margin-bottom: 12px;
+            margin-right: 12px;
+            margin-top:8px;
+        }
+
+
+        /* Espacio entre KPI (usa gap) */
+        #kpis.row {
+            gap: 16px 0;
+        }
+
+        #kpis .col-auto {
+            padding-right: 0;
+        }
+
+        .kpi-title {
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #555;
+            margin: 0 0 .25rem;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: #1e1f3b;
+            margin: 0;
+        }
+
+        .kpi-badge {
+            font-size: .65rem;
+            background: #ec4899;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 12px;
+        }
+
+        /* Heat strip (igual que antes) */
+        .heat-strip {
+            display: flex;
+            height: 34px;
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: .70rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .heat-seg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: flex .3s;
+            padding: 0 4px;
+            white-space: nowrap;
+        }
+
+            .heat-seg small {
+                font-weight: 500;
+                opacity: .9;
+            }
+
+            .heat-seg.tiny {
+                font-size: 0;
+            }
+
+        /* ======= TABLAS ======= */
+        /* CABECERAS HOMOGÉNEAS: #6639B3 */
+        .tabla-rangos thead th,
+        .tabla-detalle thead th {
+            background: #6639B3 !important;
+            color: #fff !important;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            position: relative;
+            border-radius: 0 !important;
+            padding-top: 9px;
+            padding-bottom: 9px;
+            letter-spacing: 0.2px;
+        }
+
+        .tabla-detalle thead th {
+            /* Si quieres otra cabecera para la segunda tabla, cambia aquí */
+        }
+
+        /* LÍNEA ROSA */
+        .tabla-rangos thead tr::after,
+        .tabla-detalle thead tr::after {
+            content: "";
+            display: block;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            height: 4px;
+            background: #ec4899;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            z-index: 1;
+        }
+
+        .tabla-rangos tbody td,
+        .tabla-detalle tbody td {
+            font-size: .98rem;
+            vertical-align: middle;
+        }
+
+        .tabla-detalle thead th,
+        .tabla-detalle tbody td {
+            text-align: center;
+        }
+
+        .tabla-rangos th.text-end,
+        .tabla-detalle th.text-end,
+        .tabla-rangos td.text-end,
+        .tabla-detalle td.text-end {
+            text-align: right !important;
+        }
+
+        .tabla-rangos th.text-center,
+        .tabla-detalle th.text-center,
+        .tabla-rangos td.text-center,
+        .tabla-detalle td.text-center {
+            text-align: center !important;
+        }
+
+        /* BADGES DE RANGO */
+        .badge-rango {
+            font-size: .82rem;
+            padding: 4px 13px;
+            border-radius: 12px;
+            font-weight: 600;
+            letter-spacing: .5px;
+        }
+
+        .r-91-120 {
+            background: #6b5be2;
+            color: #fff;
+        }
+
+        .r-121-150 {
+            background: #8b5cf6;
+            color: #fff;
+        }
+
+        .r-151-180 {
+            background: #c084fc;
+            color: #fff;
+        }
+
+        .r-181-210 {
+            background: #ec4899;
+            color: #fff;
+        }
+
+        .r-210 {
+            background: #db2777;
+            color: #fff;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        (async function(){
+            const url = '@Url.Action("VehiculosRezagoJson", "Reportes")';
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            const {
+                unidades,
+                edadPromedio,
+                edadMaxima,
+                valorTotal,
+                porcInventarioTotal,
+                rangos,
+                vehiculos
+            } = data;
+
+            // ---- KPIs ------------------------------------------------
+            const kpisDiv = document.getElementById('kpis');
+            const kpiItems = [
+                { title: 'Cantidad de vehículos > 90 días', value: unidades.toLocaleString() },
+                { title: 'Antigüedad promedio en stock (días)', value: edadPromedio.toFixed(0) },
+                { title: 'Antigüedad máxima registrada', value: edadMaxima.toString() },
+                { title: 'Valor total', value: valorTotal.toLocaleString(undefined, { style: 'currency', currency: 'HNL' }) },
+                porcInventarioTotal != null
+                    ? { title: '% inventario', value: (porcInventarioTotal * 100).toFixed(1) + '%' } : null
+            ].filter(x => x);
+            kpiItems.forEach(k => {
+                const col = document.createElement('div');
+                col.className = 'col-auto';
+                col.innerHTML = `
+                   <div class="kpi-box">
+                     <p class="kpi-title">${k.title}</p>
+                     <p class="kpi-value">${k.value}</p>
+                   </div>`;
+                kpisDiv.appendChild(col);
+            });
+
+            // ---- Heat Strip -------------------------------------------
+            const heat = document.getElementById('heatStrip');
+            const totalR = rangos.reduce((s, r) => s + r.cantidad, 0);
+            const colorMap = {
+                "91–120": "#6b5be2",
+                "121–150": "#8b5cf6",
+                "151–180": "#c084fc",
+                "181–210": "#ec4899",
+                ">210": "#db2777"
+            };
+            rangos.forEach(r => {
+                const seg = document.createElement('div');
+                seg.className = 'heat-seg';
+                const flex = r.cantidad;
+                seg.style.flex = flex;
+                seg.style.background = colorMap[r.rango] || '#999';
+                if ((r.cantidad / totalR) < 0.07) seg.classList.add('tiny');
+                seg.innerHTML = `<span>${r.rango} <small>${(r.porcentaje * 100).toFixed(0)}%</small></span>`;
+                heat.appendChild(seg);
+            });
+
+            // ---- Tabla rangos -----------------------------------------
+            const tbodyR = document.getElementById('tbodyRangos');
+            rangos.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                   <td class="text-center">${r.rango}</td>
+                   <td class="text-end">${r.cantidad}</td>
+                   <td class="text-end">${(r.porcentaje * 100).toFixed(1)}%</td>
+                   <td class="text-end">${r.valor.toLocaleString(undefined, { style: 'currency', currency: 'HNL' })}</td>`;
+                tbodyR.appendChild(tr);
+            });
+
+            // ---- Tabla detalle ----------------------------------------
+            const tbodyV = document.getElementById('tbodyVehiculos');
+            function rangoClase(r) {
+                if (r === "91–120") return "r-91-120";
+                if (r === "121–150") return "r-121-150";
+                if (r === "151–180") return "r-151-180";
+                if (r === "181–210") return "r-181-210";
+                return "r-210";
+            }
+            vehiculos.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td class="text-center">${v.vin ?? ''}</td>
+                  <td>${v.marca}</td>
+                  <td>${v.modelo}</td>
+                  <td class="text-center">${v.anio}</td>
+                  <td class="text-center">${v.diasEnStock}</td>
+                  <td class="text-center">
+                    <span class="badge-rango ${rangoClase(v.rango)}">${v.rango}</span>
+                  </td>
+                  <td class="text-end">
+                    ${v.precio.toLocaleString(undefined, { style: 'currency', currency: 'HNL' })}
+                  </td>
+                  <td class="text-center">
+                    ${v.fechaIngreso ? new Date(v.fechaIngreso).toLocaleDateString() : ''}
+                  </td>`;
+                tbodyV.appendChild(tr);
+            });
+
+            // ---- Exportar PDF ----
+            function exportarPDF() {
+                const mainContainer = document.querySelector('.container.py-4');
+                const clone = mainContainer.cloneNode(true);
+                const btnClone = clone.querySelector('#btn-exportar');
+                if (btnClone) btnClone.remove();
+                const opt = {
+                    margin: [0.2, 0, 0.5, 0],
+                    filename: 'Reporte_Mantenimientos.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+                html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
+                    const total = pdf.internal.getNumberOfPages();
+                    for (let i = 1; i <= total; i++) {
+                        pdf.setPage(i);
+                        pdf.setFontSize(9);
+                        pdf.setTextColor(150);
+                        pdf.text(
+                            `Página ${i} de ${total}`,
+                            pdf.internal.pageSize.getWidth() - 1.5,
+                            pdf.internal.pageSize.getHeight() - 0.3
+                        );
+                    }
+                }).save();
+            }
+            document.getElementById('btn-exportar').addEventListener('click', exportarPDF);
+        })();
+    </script>
+}

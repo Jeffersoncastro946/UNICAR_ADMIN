@@ -1,0 +1,114 @@
+﻿@model IEnumerable<UNICAR_ADMIN.Models.DTOS.ListaVehiculoDTO>
+
+@{
+    ViewData["Title"] = "Lista de vehículos";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Alert Container -->
+<div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1080; width: auto; max-width: 350px;">
+    <!-- Aquí se inyectarán las alertas -->
+</div>
+<div class="container mt-4">
+
+
+
+
+    <div class="table-responsive shadow-sm">
+
+        <table id="Tabla" class="table table-bordered table-hover " style="min-width:800px">
+            <thead >
+                <tr>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Año</th>
+                    <th>Color</th>
+                    <th>Vin</th>
+                    <th>Precio</th>
+                    <th>Estado</th>
+                    <th>Consignación</th>
+                
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+
+
+
+ @section Scripts {
+    
+     <script>
+    $(function () {
+
+       
+        // 1) Inicializa la DataTable y la guardamos en window.vehiculosTable
+        window.vehiculosTable = $('#Tabla').DataTable({
+            ajax: {
+               url: '@Url.Action("ObtenerVehiculosVendidos", "Vehiculo")',
+               dataSrc: 'data'
+            },
+            columns: [
+                { data: d => d.marca },
+                { data: d => d.modelo },
+                { data: d => d.anio },
+                { data: d => d.color },
+                { data: d => d.vin },
+                {
+                    data: d => d.precio,
+                    render: $.fn.dataTable.render.number('.', ',', 2, 'L. ')
+                },
+                {
+                    data: d => d.estado,
+                    render: d => `<span class="badge bg-info text-white">${d}</span>`
+                },
+                {
+                    data: d => d.esConsignacion,
+                    render: v =>
+                        v
+                        ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                        : '<i class="bi bi-x-circle-fill text-danger"></i>'
+                },
+
+            ],
+            responsive: true,
+            language: {
+                lengthMenu: 'Mostrar _MENU_ registros por página',
+                zeroRecords: 'No se encontraron registros',
+                info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+                infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+                infoFiltered: '(filtrado de _MAX_ registros totales)',
+                search: 'Buscar:',
+                loadingRecords: 'Cargando...',
+                processing: 'Procesando...',
+                paginate: {
+                    first: 'Primero',
+                    last: 'Último',
+                    next: 'Siguiente',
+                    previous: 'Anterior'
+                },
+                decimal: ',',
+                thousands: '.'
+            }
+        });
+                
+    });
+    </script>
+    <script src="~/js/WizardVehiculo.js"></script>
+}

@@ -1,0 +1,86 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.ContratoDto;
+<div class="card shadow-lg rounded-4 p-4 bg-white w-100" style="max-width: 800px;">
+    <form asp-action="CrearContrato" asp-controller="Contrato" method="post" id="FormCrearContrato" class="row g-3">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="col-md-6">
+            <label asp-for="ClienteId" class="form-label">Cliente</label>
+            <select asp-for="ClienteId" asp-items="Model.ListaCliente" class="form-select">
+                <option disabled selected>-- Seleccionar Cliente --</option>
+            </select>
+            <span asp-validation-for="ClienteId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="VendedorId" class="form-label">Vendedor</label>
+            <select asp-for="VendedorId" asp-items="Model.ListaVendedor" class="form-select">
+                <option disabled selected>-- Seleccionar Vendedor --</option>
+            </select>
+            <span asp-validation-for="VendedorId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="VehiculoId" class="form-label">Vehículo</label>
+            <select asp-for="VehiculoId" asp-items="Model.ListaVehiculo" class="form-select">
+                <option disabled selected>-- Seleccionar Vehículo --</option>
+            </select>
+            <span asp-validation-for="VehiculoId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="TipoVenta" class="form-label">Tipo de Venta</label>
+            <select asp-for="TipoVenta" asp-items="Model.ListaTipoVenta" class="form-select" >
+                <option disabled selected>-- Seleccionar Tipo de Venta --</option>
+            </select>
+            <span asp-validation-for="TipoVenta" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="FechaVenta" class="form-label">Fecha de Venta</label>
+            <input asp-for="FechaVenta" type="date" class="form-control" />
+            <span asp-validation-for="FechaVenta" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="PrecioVenta" class="form-label">Precio de Venta</label>
+            <input asp-for="PrecioVenta" class="form-control" id="PrecioVenta" />
+            <span asp-validation-for="PrecioVenta" class="text-danger"></span>
+        </div>
+
+        <!-- CAMPOS FINANCIAMIENTO -->
+    @*     <div class="col-md-6 campo-financiamiento">
+            <label asp-for="PlazoMeses" class="form-label">Plazo (meses)</label>
+            <input asp-for="PlazoMeses" class="form-control" id="PlazoMeses" />
+            <span asp-validation-for="PlazoMeses" class="text-danger"></span>
+        </div> *@
+
+@*         <div class="col-md-6 campo-financiamiento">
+            <label asp-for="TasaAnual" class="form-label">Tasa Anual (%)</label>
+            <input asp-for="TasaAnual" class="form-control" id="TasaAnual" />
+            <span asp-validation-for="TasaAnual" class="text-danger"></span>
+        </div> *@
+        <div class="col-md-6 campo-financiamiento" >
+            <label asp-for="PlazoMeses" class="form-label">Plazo (meses)</label>
+            <select asp-for="PlazoMeses" asp-items="@Model.ListaPlazos">
+                <option disabled selected>-- Seleccionar Plazo --</option>
+            </select>
+        </div >
+        <div class="col-md-6 campo-financiamiento">
+            <label asp-for="TasaAnual" class="form-label">Tasa Anual (%)</label>
+            <select asp-for="TasaAnual" asp-items="@Model.ListaTasa">
+                <option disabled selected>-- Seleccionar tasa --</option>
+            </select>
+        </div>
+
+        <div class="col-md-12 campo-financiamiento">
+            <label asp-for="CuotaMensual" class="form-label">Cuota Mensual</label>
+            <input asp-for="CuotaMensual" class="form-control" id="CuotaMensual" readonly />
+        </div>
+
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-outline-success">
+                <i class="bi bi-save"></i> Guardar Contrato
+            </button>
+        </div>
+    </form>
+</div>

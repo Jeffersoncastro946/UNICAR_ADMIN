@@ -1,0 +1,233 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.Reportes.ReporteVehiculoMantenimientosViewModel
+@using System.Globalization
+@{
+    // Layout = null;
+    var hoy = DateTime.Now;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+     <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            font-size: 15px;
+            color: #222;
+        }
+
+        @@page { margin: 0; }
+        @@media print { body { margin: 0; } }
+
+        .container { padding: 0.5rem 2rem; }
+
+        /* -------- VEHICLE SUMMARY -------- */
+        .vehicle-summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            gap: 1rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 1.5rem;
+        }
+        .vehicle-summary span { white-space: nowrap; }
+
+        .section-title {
+            color: #3f51b5;
+            font-weight: bold;
+            font-size: 1.35rem;
+            margin: 1rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* -------- TABLA -------- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #d9dce6;
+            margin: .5rem 0;
+            font-size: 15px; /* igual que el body */
+        }
+
+        th, td {
+            padding: 11px 16px;
+            border: 1px solid #d9dce6;
+            vertical-align: middle;
+        }
+
+        thead th {
+            background: #6639b3;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 4px solid #ec4899;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr:nth-child(even) { background: #f7f8fc; }
+
+        td.num, th.num         { text-align: right; white-space: nowrap; }
+        .text-start  { text-align: left; }
+        .text-center { text-align: center; }
+        .text-end    { text-align: right; }
+
+        /* -------- FOOTER -------- */
+        footer {
+            margin: 2rem 0 0;
+            text-align: right;
+            font-size: .9rem;
+            color: #555;
+        }
+
+        /* -------- PAGE BREAK PRINT -------- */
+        @@media print {
+            .page-break { page-break-after: always; }
+            #btn-exportar { display: none !important; }
+        }
+
+        /* -------- BOTÓN EXPORTAR -------- */
+        #btn-exportar {
+            margin-left: auto;
+            border-radius: 8px;
+            padding: .5rem 1rem;
+            font-size: .95rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .reparaciones-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: .5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        @await Html.PartialAsync("_ReporteHeaderMantenimiento", Model)
+        <!-- SECCIÓN VEHÍCULO COMPACTO -->
+        <div class="section-title">Vehículo 🚗</div>
+        <div class="vehicle-summary">
+            <span><strong>@Model.Marca @Model.Modelo (@Model.Año)</strong></span>
+            <span>Color: @Model.Color</span>
+            <span>VIN: @Model.VIN</span>
+            <span>Precio: @Model.Precio.ToString("C")</span>
+        </div>
+
+        <!-- SECCIÓN REPARACIONES -->
+        <div class="section-title reparaciones-header">
+            <span>🧾 Reparaciones</span>
+            <button id="btn-exportar" class="btn btn-outline-primary" onclick="exportarPDF()">📄 Exportar a PDF</button>
+        </div>
+        @if (Model.Reparaciones != null && Model.Reparaciones.Any())
+        {
+            <table>
+              <thead>
+                <tr>
+                  <th class="text-center">Fecha</th>
+                  <th class="text-start">Descripción</th>
+                  <th class="text-start">Responsable</th>
+                  <th class="text-center">Costo</th>
+                  <th class="text-center">Imagen</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (int i = 0; i < Model.Reparaciones.Count; i++)
+                {
+                  var r = Model.Reparaciones[i];
+                  <tr>
+                    <td class="text-center">
+                      @r.FechaCreacion.ToString("dd/MM/yyyy")
+                    </td>
+                    <td class="text-start">
+                      @r.Descripcion
+                    </td>
+                    <td class="text-start">
+                      @r.Responsable
+                    </td>
+                    <td class="text-center">
+                      @r.Costo.ToString("C")
+                    </td>
+                    <td class="text-center">
+                      @if (!string.IsNullOrEmpty(r.ImagenUrl))
+                      {
+                        <img src="@Url.Content(r.ImagenUrl)" class="img-fluid" style="max-height:60px;" />
+                      }
+                    </td>
+                  </tr>
+                  @if ((i + 1) % 15 == 0)
+                  {
+                    <tr class="page-break"></tr>
+                  }
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-start">Total:</td>
+                  <td class="text-center">
+                    @Model.Reparaciones.Sum(x => x.Costo).ToString("C")
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+
+        }
+        else
+        {
+            <div class="alert alert-warning text-center">
+                Este vehículo no tiene reparaciones registradas.
+            </div>
+        }
+
+        <!-- FOOTER -->
+        <footer>
+            UNICAR © @hoy:yyyy
+        </footer>
+    </div>
+
+    <!-- BOTÓN EXPORTAR -->
+    @* <button id="btn-exportar" class="btn btn-outline-primary" onclick="exportarPDF()">📄 Exportar a PDF</button> *@
+    @* <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> *@
+    <script>
+        function exportarPDF() {
+                  // 1. Clonamos el contenedor
+                const original = document.querySelector('.container');
+                const clone = original.cloneNode(true);
+                const btnClone = clone.querySelector('#btn-exportar');
+                if (btnClone) btnClone.remove();
+                const element = document.querySelector('.container');
+            const opt = {
+                margin: [0.2, 0, 0.5, 0], // [top, left, bottom, right] en pulgadas
+                filename:     'Reporte_Mantenimientos.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                 html2canvas:  { scale: 2, },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+            html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
+                const total = pdf.internal.getNumberOfPages();
+                for (let i = 1; i <= total; i++) {
+                    pdf.setPage(i);
+                    pdf.setFontSize(9);
+                    pdf.setTextColor(150);
+                    pdf.text(
+                        `Página ${i} de ${total}`,
+                        pdf.internal.pageSize.getWidth() - 1.5,
+                        pdf.internal.pageSize.getHeight() - 0.3
+                    );
+                }
+            }).save();
+        }
+    </script>
+</body>
+</html>

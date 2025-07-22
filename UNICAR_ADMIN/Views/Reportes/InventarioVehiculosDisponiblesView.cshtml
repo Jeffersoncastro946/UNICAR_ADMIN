@@ -1,0 +1,278 @@
+﻿@model IEnumerable<UNICAR_ADMIN.Models.DTOS.Reportes.InventarioVehiculosRPT>
+@using System.Globalization
+@using UNICAR_ADMIN.Models.DTOS.Reportes
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var fechaIni = Model.Min(x => x.FechaIngreso);
+    var fechaFin = Model.Max(x => x.FechaIngreso);
+    var hoy = DateTime.Now;
+    var rango = $"({fechaIni:dd/MM/yyyy} – {fechaFin:dd/MM/yyyy})";
+    var header = (ReporteHeaderViewModel)ViewData["Header"]!;
+    header.Subtitulo = $"Período: {rango}";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+@*     <style>
+        /* ================= RESET ================= */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            font-size: 11pt;
+            color: #222;
+        }
+
+        @@page {
+            margin: 0;
+        }
+
+        @@media print {
+            body {
+                margin: 0;
+            }
+        }
+
+        /* ========== CONTENEDOR ========== */
+        .container {
+            padding: 1rem 2rem;
+        }
+
+       
+
+        /* ========== TABLA REPORTE ========== */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: .5rem 0;
+            font-size: 11pt;
+        }
+
+            .report-table th,
+            .report-table td {
+                padding: 7px 9px;
+                border: 1px solid #d9dce6;
+            }
+
+            .report-table thead th {
+                background: #6639b3;
+                color: #fff;
+                font-size: .85rem;
+                font-weight: 600;
+                text-align: center;
+                border-bottom: 4px solid #ec4899;
+            }
+
+            .report-table tbody tr:nth-child(even) {
+                background: #f7f8fc;
+            }
+
+        .text-start {
+            text-align: left;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .num {
+            white-space: nowrap;
+        }
+
+        /* ========== FOOTER ========== */
+        footer {
+            margin: 2rem 0 0;
+            text-align: right;
+            font-size: .75rem;
+            color: #555;
+        }
+
+        body, table, th, td, button {
+            font-family: 'Montserrat', sans-serif !important;
+        }
+    </style> *@
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            font-size: 15px; /* tamaño base homogéneo */
+            color: #222;
+        }
+
+        @@page {
+            margin: 0;
+        }
+
+        @@media print {
+            body {
+                margin: 0;
+            }
+        }
+
+        .container {
+            padding: 1rem 2rem;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: .5rem 0;
+            font-size: 15px; /* igual que el body */
+        }
+
+            .report-table th,
+            .report-table td {
+                padding: 11px 16px; /* padding más generoso */
+                border: 1px solid #d9dce6;
+                vertical-align: middle;
+            }
+
+            .report-table thead th {
+                background: #6639b3;
+                color: #fff;
+                font-size: 17px; /* encabezado más grande */
+                font-weight: 600;
+                text-align: center;
+                border-bottom: 4px solid #ec4899;
+                letter-spacing: 0.5px;
+            }
+
+            .report-table tbody tr:nth-child(even) {
+                background: #f7f8fc;
+            }
+
+        .text-start {
+            text-align: left;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .num {
+            white-space: nowrap;
+        }
+
+        /* ========== FOOTER ========== */
+        footer {
+            margin: 2rem 0 0;
+            text-align: right;
+            font-size: .9rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+      
+        @* @await Html.PartialAsync("_ReporteHeaderGeneral", ) *@
+        @await Html.PartialAsync("_ReporteHeaderGeneral", header)
+        <div class="mt-4">
+        <!-- Tabla de Inventario -->
+        <table id="tablaInventario" class="report-table">
+            <thead>
+                <tr>
+                    <th class="text-center">VIN</th>
+                    <th class="text-start">Marca</th>
+                    <th class="text-start">Modelo</th>
+                    <th class="text-center">Año</th>
+                    <th class="text-start">Color</th>
+                    <th class="text-start">Estado</th>
+                    <th class="text-start">Proveedor</th>
+                    <th class="text-center">Consignación</th>
+                    <th class="text-center">Fecha Ingreso</th>
+                    <th class="num text-center">Días en stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model)
+                {
+                    var dias = v.FechaIngreso.HasValue
+                    ? (DateTime.Today - v.FechaIngreso.Value.Date).Days
+                    : 0;
+                    <tr>
+                        <td class="text-center">@v.Vin</td>
+                        <td class="text-start">@v.Marca</td>
+                        <td class="text-start">@v.Modelo</td>
+                        <td class="text-center">@v.Anio</td>
+                        <td class="text-start">@v.color</td>
+                        <td class="text-start">@v.Estado</td>
+                        <td class="text-start">@v.Proveedor</td>
+                        <td class="text-center">@(v.Esconsignacion ? "Sí" : "No")</td>
+                        <td class="text-center">
+                            @(v.FechaIngreso?.ToString("dd/MM/yyyy") ?? "")
+                        </td>
+                        <td class="num text-center">@dias</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+        <footer>
+            UNICAR &copy; @hoy.ToString("yyyy")
+        </footer>
+    </div>
+</body>
+</html>
+@section Scripts {
+    <script>
+        $(function(){
+          // Sobrescribimos el template de botones para usar btn-sm automáticamente
+          $.extend(true, $.fn.dataTable.Buttons.defaults.dom.button, {
+            className: 'btn btn-sm me-1'
+          });
+
+          $("#tablaInventario").DataTable({
+              dom: '<"d-flex justify-content-between mb-3"' +
+               '<"btn-group"B>' +        // aquí van los botones, alineados a la izquierda
+               '<"dataTables_filter"f>' +// aquí va el buscador, alineado a la derecha
+             '>rtip',                   // r=processing, t=table, i=info, p=paging
+            buttons: [
+              {
+                extend: 'copyHtml5',
+                text: '<i class="bi bi-clipboard"></i>',
+                titleAttr: 'Copiar',
+                className: 'btn-outline-secondary' // se une con btn-sm de arriba
+              },
+              {
+                extend: 'excelHtml5',
+                text: '<i class="bi bi-file-earmark-excel"></i>',
+                titleAttr: 'Excel',
+                className: 'btn-outline-success'
+              },
+              {
+                text: '<i class="bi bi-download"></i>',
+                titleAttr: 'PDF Rotativa',
+                className: 'btn-outline-primary',
+                action: function () {
+                  window.open(
+                    '@Url.Action("InventarioVehiculosDisponibles", "Reportes")',
+                    '_blank'
+                  );
+                }
+              }
+            ],
+            order: [[8,'asc']],
+            responsive: true
+          });
+        });
+    </script>
+}

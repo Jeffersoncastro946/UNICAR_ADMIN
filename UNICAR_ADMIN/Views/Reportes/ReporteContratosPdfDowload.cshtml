@@ -1,0 +1,111 @@
+﻿
+@using System.Globalization
+@model UNICAR_ADMIN.Models.DTOS.ContratosPorEstadoDto
+@{
+    Layout = null;
+    var hoy   = DateTime.Now;
+    var rango = (Model.FechaInicio.HasValue || Model.FechaFin.HasValue)
+               ? $"({Model.FechaInicio:dd/MM/yyyy} – {Model.FechaFin:dd/MM/yyyy})"
+               : "(todas las fechas)";
+    var hn = new CultureInfo("es-HN");
+}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+@@page { margin:0; }
+@@media print { body{margin:0;} }
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:"Segoe UI",sans-serif;
+  font-size:11pt;        /* tamaño base */
+  color:#222;
+}
+
+/* ---------- ENCABEZADO ---------- */
+
+
+/* ---------- TABLA ---------- */
+table{
+  width:100%;
+  border-collapse:collapse;
+  border:1px solid #d9dce6;
+  font-size:12pt;                 /* ⬆ celdas */
+}
+th,td{padding:7px 9px;border:1px solid #d9dce6;}
+
+        thead th {
+            background: #6639b3;
+            color: #fff;
+            font-size: 14pt; /* ← ¡aquí lo agrandamos! */
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 4px solid #ec4899;
+            padding: 10px 12px; /* un pelín más de acolchado */
+        }
+
+tbody tr:nth-child(even){background:#f7f8fc;}
+.num{text-align:right;white-space:nowrap;}
+tfoot td{font-weight:700;background:#fafafa;}
+tfoot td:first-child{text-align:right;}
+
+/* ---------- PIE ---------- */
+footer{
+  margin-top:1.2rem;padding-right:1rem;
+  text-align:right;font-size:.8rem;color:#555;
+}
+</style>
+</head>
+<body>
+    @await Html.PartialAsync("_ReporteHeader", new UNICAR_ADMIN.Models.DTOS.Reportes.FiltroContratosEstadoDto
+    {
+        Estado = Model.EstadoFiltrado,
+        FechaInicio = Model.FechaInicio,
+        FechaFin = Model.FechaFin
+    })
+
+<table>
+  <thead>
+    <tr>
+      <th>Cod</th><th>Estado</th><th>Cliente</th><th>Vehículo</th>
+      <th>Fecha&nbsp;Venta</th>
+      <th class="num">Precio&nbsp;Venta</th>
+      <th class="num">saldo Pagado</th>
+      <th class="num">Saldo pendiente</th>
+    </tr>
+  </thead>
+  <tbody>
+  
+  @foreach(var c in Model.Filas)
+  {
+      <tr>
+          <td>@c.ContratoId</td>
+          <td>@c.Estado</td>
+          <td>@c.Cliente</td>
+          <td>@c.Vehiculo</td>
+          <td>@c.FechaVenta?.ToString("dd/MM/yyyy")</td>
+          <td class="num">@c.PrecioVenta.ToString("C", hn)</td>
+          <td class="num">@c.MontoPagadoTotal.ToString("C", hn)</td>
+          <td class="num">@c.SaldoPendiente.ToString("C", hn)</td>
+      </tr>
+  }
+  </tbody>
+  <tfoot>
+    <tr>
+       <td colspan="5"></td>
+       <td class="num">@Model.SumaVentas.ToString("C", hn)</td>
+       <td class="num">@Model.SumaPagado.ToString("C", hn)</td>
+       <td class="num">@Model.SumaSaldoPendiente.ToString("C", hn)</td>
+    </tr>
+  </tfoot>
+</table>
+
+<footer>
+  Generado el @hoy las @hoy
+</footer>
+
+</body>
+</html>

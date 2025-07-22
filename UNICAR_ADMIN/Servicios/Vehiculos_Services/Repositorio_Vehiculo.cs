@@ -22,6 +22,7 @@ namespace UNICAR_ADMIN.Servicios.Vehiculos_Services
 
         // Read
         Task<VehiculoDetalle?> ObtenerDetalleVehiculo(int id);
+        Task<ListaVehiculoDTO> ObtenerVehiculosPorContrato(int id);
 
         // Update
         Task<bool> Editar(CrearVehiculoDTO vehiculoDTO, string user);
@@ -99,6 +100,7 @@ namespace UNICAR_ADMIN.Servicios.Vehiculos_Services
                     EsConsignacion = vehiculoDTO.EsConsignacion,
                     Activo = true,
                     FechaCreacion = DateTime.UtcNow,
+                    FechaIngreso=DateTime.Now,
                     UsuarioCreacion = user
 
                 };
@@ -436,6 +438,52 @@ namespace UNICAR_ADMIN.Servicios.Vehiculos_Services
                      Value = p.VehiculoId.ToString(),
                      Text = p.Vin
                  }).ToListAsync();
+        }
+
+        public async Task<ListaVehiculoDTO> ObtenerVehiculosPorContrato(int id)
+        {
+            var contrato = await contexto.Contratos
+                .Where(x => x.Activo == true && x.ContratoId == id)
+                .Select(x => new ContratoDto
+                {
+                    PrecioVenta=x.PrecioVenta ?? 0.0m,
+                    Vendedor =x.Vendedor != null ? x.Vendedor.NombreCompleto : "Sin vendedor",   
+                    Cliente = x.Cliente!=null ? x.Cliente.NombreCompleto : "Sin cliente",
+                    VehiculoDetalle = x.Vehiculo != null
+                        ? new ListaVehiculoDTO //no es una lista ya que al final no se pudo hacer relacion de 1:N
+                        {
+                            VehiculoId = x.Vehiculo.VehiculoId,
+
+                            Marca = x.Vehiculo.Marca ?? "Sin marca",
+                            Modelo = x.Vehiculo.Modelo ?? "Sin modelo",
+                            Anio = x.Vehiculo.Anio ,
+                            Color = x.Vehiculo.Color ?? "Sin color",
+                            Vin = x.Vehiculo.Vin ?? "Sin VIN",
+                            Precio=x.Vehiculo.Precio,
+                            Estado = x.Vehiculo.EstadoNavigation != null
+                                     ? x.Vehiculo.EstadoNavigation.Nombre
+                                     : "Desconocido"
+                        }
+                        : null
+                })
+                .FirstOrDefaultAsync();
+
+            // Obtener todas las reparaciones
+            var reparaciones = await ListarReparaciones();
+            // Filtrar solo las del vehículo actual
+            var gastos = reparaciones
+                .Where(r => r.VehiculoId == contrato?.VehiculoDetalle?.VehiculoId)
+                .Sum(r => r.costo);
+
+            //asigno el gasto al vehiculo detalle
+            // Replace the problematic line with the following code to avoid using the "null conditional assignment" feature:
+            if (contrato?.VehiculoDetalle != null)
+            {
+                contrato.VehiculoDetalle.TotalGastosMantenimientos = gastos;
+            }
+            
+
+            return contrato?.VehiculoDetalle?? new ListaVehiculoDTO();
         }
 
         #endregion

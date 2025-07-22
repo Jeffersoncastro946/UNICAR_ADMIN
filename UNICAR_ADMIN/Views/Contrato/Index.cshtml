@@ -1,107 +1,413 @@
 ﻿@{
     ViewData["Title"] = "Lista de Contratos";
+
 }
 
-
 <div class="container mt-4">
-    <div class="row mb-3 align-items-center">
-        <div class="col">
-            <h2 class="text-dark mb-0">Contratos Registrados</h2>
-        </div>
-        <div class="col-auto">
-            <button class="btn btn-primary"
-                    onclick="abrirModal('md','Registrar Contrato','/Contrato/Crear')">
-                <i class="bi bi-plus-circle"></i> Nuevo Contrato
+
+    <!-- ╔════════  TÍTULO + BOTÓN NUEVO ════════╗ -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <h2 class="mb-2 mb-lg-0 fw-semibold text-dark">Contratos Registrados</h2>
+
+        <div class="btn-group gap-2">
+            <!-- Botón de reportes: mismo estilo que otros "plain-outline" -->
+            <button id="btnReporteContratos"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-printer-fill fs-6"></i>
+                <span>Reportería</span>
+            </button>
+
+            <!-- Botón de nuevo: mismo estilo que otros "primary" -->
+            <button id="btnNuevoContrato"
+                    class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-plus-circle fs-6"></i>
+                <span>Nuevo Contrato</span>
             </button>
         </div>
     </div>
+    <!-- ╚═══════════════════════════════════════╝ -->
+
 
     <div class="table-responsive shadow-sm">
-        <table id="Tabla" class="table table-bordered table-hover" style="min-width:800px">
+        <table id="Tabla" class="table table-bordered table-hover text-bg-danger text-center align-middle" style="min-width:800px">
             <thead>
                 <tr>
                     <th></th> <!-- Para el icono de expandir o detalles -->
-                    <th>ID Contrato</th>
+                    <th>#</th>
                     <th>Cliente</th>
-                    @* <th>Vehículo</th> *@
-                    <th>Vendedor</th>
-                    <th>Fecha Venta</th>
-                    <th>Precio Venta</th>
                     <th>Tipo Venta</th>
-                    <th>Firma</th>
-                    <th>Activo</th>
+                    @* <th>Vehículo</th> *@
+                    <th>Precio Venta</th>
+                    <th>Pagado</th>
+                    <th>Saldo</th>
+                    <th>Estado</th>
+                    <th>Último Pago</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
         </table>
     </div>
 </div>
-
 @section Scripts {
     <script>
-        $(function () {
-            $('#Tabla').DataTable({
+      $(function () {
+            // 1) Click en Nuevo Contrato
+            $("#btnNuevoContrato").on("click", function (e) {
+                e.preventDefault();
+                abrirModal("lg", "Registrar Contrato", "/Contrato/CrearContrato");
+            });
+            // 1.1) click en boton reporte
+            $("#btnReporteContratos").on("click", function(e){
+              e.preventDefault();
+                abrirModal("md", "Reporte detallado · Contratos por Estado", "/Reportes/Filtros");
+            });
+
+            // 2) Inicializar DataTable
+            let tabla = $("#Tabla").DataTable({
                 ajax: {
                     url: '@Url.Action("ObtenerContratos", "Contrato")',
-                    dataSrc: 'data' // Ajusta si tu JSON tiene otra estructura
+                    dataSrc: "data",
                 },
                 columns: [
                     {
-                        className: 'details-control text-center',
+                        className: "dt-control-detail text-center",
                         orderable: false,
                         data: null,
-                        defaultContent: '<i class="bi bi-plus-circle-fill text-success fs-5"></i>'
+                        defaultContent: '<i class="bi bi-plus-circle-fill text-success fs-5"></i>',
                     },
-                    { data: 'contratoId' },
-                    { data: 'cliente' },
-                    // { data: 'vehiculoId' }, // Cambia por marca/modelo si lo tienes en el DTO
-                    { data: 'vendedor' }, // Cambia por nombre si lo tienes en el DTO
-                    { data: 'fechaVenta', render: data => data ? new Date(data).toLocaleDateString() : '' },
-                    { data: 'precioVenta', render: data => `L ${data?.toLocaleString()}` },
-                    { data: 'tipoVenta' },
-                    { data: 'firmaDocumento',
-                     render: data => data
-                     ? '<i class="bi bi-check-circle-fill text-success"></i>'
-                     : '<i class="bi bi-x-circle-fill text-danger"></i>'
-                    },
-                    { data: 'activo', render: data => data 
-                     ? '<i class="bi bi-check-circle-fill text-success"></i>'
-                     : '<i class="bi bi-x-circle-fill text-danger"></i>' },
+                    { data: "contratoId" },
+                    { data: "cliente" },
+                    { data: "tipoVenta" },
                     {
-                        data: 'contratoId',
+                        data: "precioContrato",
+                        render: (d) => `L ${d.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`,
+                    },
+                    {
+                        data: "pagado",
+                          render: (d) => `L ${d?.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`,
+                    },
+                    {
+                        // 🔢 Calculamos el saldo en el frontend
+                        data: null,
+                        render: function (data, type, row) {
+                            const saldo = parseFloat(row.precioContrato) - parseFloat(row.pagado);
+                            return `L ${saldo.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
+                        }
+                    },
+                    { data: "estadoContrato",
+                      render: function(data, type, row){
+                          let badge = '';
+                            switch (data) {
+                                case 'Activo': badge = 'success'; break;
+                                case 'Finalizado': badge = 'primary'; break;
+                                case 'EnMora': badge = 'warning'; break;
+                                case 'Cancelado': badge = 'danger'; break;
+                                default: badge = 'secondary'; break;
+                            }
+                         return `<span class="badge bg-${badge}">${data}</span>`;
+                      }
+                    },
+                    {
+                        data: "ultimoPago",
+                        render: function(data, type, row){
+                            if(!data) return '--';
+                            const fecha=new Date(data);
+                            return fecha.toLocaleDateString('es-ES');
+                        }
+                    },
+                    {
+                        data: "contratoId",
                         orderable: false,
                         searchable: false,
-                        className: 'text-center',
-                        render: id => `
-                            <button class="btn btn-sm btn-warning" onclick="abrirModal('md','Editar Contrato','/Contrato/Editar/${id}')">
+                        className: "text-center",
+                        render: (id) => `
+                            <button class="btn btn-sm btn-warning me-1"
+                                    onclick="abrirModal('md','Editar Contrato','/Contrato/Editar/${id}')">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="abrirModal('sm','Eliminar Contrato','/Contrato/Eliminar/${id}')">
+                            <button class="btn btn-sm btn-danger"
+                                    onclick="abrirModal('md','Eliminar Contrato','/Contrato/Eliminar/${id}')">
                                 <i class="bi bi-trash"></i>
-                            </button>
-                        `
-                    }
+                            </button>`,
+                    },
                 ],
+                //col
+                columnDefs: [
+                {
+                    targets: [1, 6], // Índices de columnas que querés centrar (0 = ID, 3 = Precio)
+                    className: 'text-center'
+                } ],
                 responsive: true,
                 language: {
-                    lengthMenu: 'Mostrar _MENU_ registros por página',
-                    zeroRecords: 'No se encontraron registros',
-                    info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
-                    infoEmpty: 'Mostrando 0 a 0 de 0 registros',
-                    infoFiltered: '(filtrado de _MAX_ registros totales)',
-                    search: 'Buscar:',
-                    loadingRecords: 'Cargando...',
-                    processing: 'Procesando...',
+                    lengthMenu: "Mostrar _MENU_ registros por página",
+                    zeroRecords: "No se encontraron registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                    infoFiltered: "(filtrado de _MAX_ registros totales)",
+                    search: "Buscar:",
+                    loadingRecords: "Cargando...",
+                    processing: "Procesando...",
                     paginate: {
-                        first: 'Primero',
-                        last: 'Último',
-                        next: 'Siguiente',
-                        previous: 'Anterior'
+                        first: "Primero",
+                        last: "Último",
+                        next: "Siguiente",
+                        previous: "Anterior",},
+                    decimal: ",",
+                    thousands: ".", },
+             });
+
+                // 3) Al mostrarse el modal, aplicar Select2 a los selects dentro
+                $("#modalGlobal").on("shown.bs.modal", function () {
+                    const body = $(this).find(".modal-body");
+                    body.find("select").each(function () {
+                        if (!$(this).hasClass("select2-hidden-accessible")) {
+                            $(this).select2({
+                                dropdownParent: $("#modalGlobal"),
+                                width: "100%",
+                            });
+                        }
+                    });
+                    const tipoVenta = body.find("#TipoVenta");
+                      body.find("#TasaAnual, #PlazoMeses, #PrecioVenta").on("change", CalcularCuota);
+                    if (tipoVenta.length > 0) {
+                        console.log("TipoVenta encontrado en modal:", tipoVenta);
+
+                        // Desvincular por si se había asignado antes
+                        // tipoVenta.off("change");
+
+                        // Volver a vincular el evento
+                        tipoVenta.on("change", function () {
+                            CambiarCamposFinanciamientos();
+                        });
+
+                        // Ejecutar al abrir (por si está precargado)
+                        CambiarCamposFinanciamientos();
+                    } else {
+                        console.warn("TipoVenta NO encontrado dentro del modal.");
+                    }
+
+                    // el cambio de campos
+                    // CambiarCamposFinanciamientos();
+                });
+
+            // 4) Cambiar lógica por defecto del botón crear
+            $(document).on("submit", "#FormCrearContrato", function (e) {
+                e.preventDefault();
+                const $form = $(this);
+                const url = $form.attr("action");
+                const data = new FormData(this);
+                 data.append("EstadoContrato", "Activo");
+                // Ajax para enviar al controlador
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: data,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        if (response.success) {
+                            $("#modalGlobal").modal("hide");
+                            $("#Tabla").DataTable().ajax.reload();
+                            showAlert("success", response.message);
+                        } else if (response && !response.success) {
+                            $("#modalGlobal").modal("hide");
+                            $("#Tabla").DataTable().ajax.reload(null, false);
+                            showAlert("danger", response.message);
+                        } else {
+                            $("#modalGlobal .modal-body").html(res);
+                            $.validator.unobtrusive.parse("#modalGlobal .modal-body");
+                        }
                     },
-                    decimal: ',',
-                    thousands: '.'
-                }
+                    error: function (xhr, status, error) {
+                        const msg = xhr.responseJSON?.message || "Error inesperado en el servidor";
+                        showAlert("danger", msg);
+                    },
+                });
             });
+
+            // 5) Cambiar lógica de eliminar
+            $(document).on("submit", "#formEliminarContrato", function (e) {
+                e.preventDefault();
+                const $form = $(this);
+                const url = $form.attr("action");
+                const data = new FormData(this);
+                console.log(data);
+                $.ajax({
+                    url,
+                    method: "POST",
+                    data,
+                    contentType: false,
+                    processData: false,
+                    success(res) {
+                        if (res && res.success) {
+                            $("#modalGlobal").modal("hide");
+                            $("#Tabla").DataTable().ajax.reload(null, false);
+                            showAlert("success", res.message);
+                        } else {
+                            $("#modalGlobal").modal("hide");
+                            $("#Tabla").DataTable().ajax.reload(null, false);
+                            showAlert("danger", res.message);
+                        }
+                    },
+                    error(xhr) {
+                        const msg = xhr.responseJSON?.message || "Error inesperado en el servidor";
+                        showAlert("danger", msg);
+                    },
+                });
+            });
+
+            // 6) Lógica para editar
+            $(document).on("submit", "#FormEditarContrato", function (e) {
+                e.preventDefault();
+                const $form = $(this);
+                const url = $form.attr("action");
+                const data = new FormData(this);
+
+                $.ajax({
+                    url,
+                    method: "Post",
+                    data,
+                    contentType: false,
+                    processData: false,
+                    success(res) {
+                        if (res && res.success) {
+                            $("#modalGlobal").modal("hide");
+                            $("#Tabla").DataTable().ajax.reload(null, false);
+                            showAlert("success", res.message);
+                        } else {
+                            $("#modalGlobal").modal("hide");
+                            $("#Tabla").DataTable().ajax.reload(null, false);
+                            showAlert("danger", res.message);
+                        }
+                    },
+                    error(xhr) {
+                        const msg = xhr.responseJSON?.message || "Error inesperado en el servidor";
+                        showAlert("danger", msg);
+                    },
+                });
+            });
+
+         // 7) Lógica para expandir filas
+        // Lógica para expandir filas
+                $("#Tabla tbody").on('click', 'td.dt-control-detail', function () {
+                    const tr = $(this).closest('tr');
+                    const row = tabla.row(tr);
+                    const $iconCell = $(this); // Para cambiar el ícono
+
+                    if (row.child.isShown()) {
+                        // Si ya está expandido, lo colapsamos
+                        row.child.hide();
+                        tr.removeClass('shown');
+                        $iconCell.html('<i class="bi bi-plus-circle-fill text-success fs-5"></i>');
+                    } else {
+                        // Mostrar un spinner mientras carga
+                        row.child('<div class="text-muted">Cargando detalle...</div>').show();
+                        tr.addClass('shown');
+                         $iconCell.html('<i class="bi bi-dash-circle-fill text-danger fs-5"></i>');
+
+                        // Hacer la petición AJAX
+                        const data = row.data();
+
+                        $.ajax({
+                            url: `/Contrato/DetalleContratoParcial/${data.contratoId}`, // <-- asegúrate que sea "data.id" o "data.contratoId" según tu modelo
+                            method: 'GET',
+                            success: function (html) {
+                                row.child(html).show();
+                            },
+                            error: function () {
+                                row.child('<div class="text-danger">Error al cargar detalle</div>').show();
+                            }
+                        });
+                    }
+                });
+         //fin
+         //8 logica para mostrar datos si es contado debe ocultarse close campos financiamientos
+
+
+
+        function CambiarCamposFinanciamientos(){
+         const tipoVenta = document.getElementById("TipoVenta");
+        const valor = tipoVenta ? tipoVenta.value.toLowerCase() : "";
+           // const tipoVenta=document.getElementById("TipoVenta").value.toLowerCase();
+           const campos=document.querySelectorAll(".campo-financiamiento");
+
+           if(valor.includes("contado")){
+              campos.forEach(c =>c.style.display="none");
+               document.getElementById("CuotaMensual").value = ""; // limpiar cuota
+            }
+            else{
+                campos.forEach(c => c.style.display = "block");
+                CalcularCuota();
+            }
+        }
+
+        //funcion para calcular cuotas
+
+          function CalcularCuota(){              
+            // cuota=montoTotal(r(1+r)^n)/((1+r)^N)-1
+            // donde r=tasa mensual=tasaAnual/12/100
+            // n=plazosMeses
+            const monto=parseFloat(document.getElementById("PrecioVenta").value);
+            const TasaStr=document.getElementById("TasaAnual").value;
+            const plazoStr=document.getElementById("PlazoMeses").value;
+            const cuotaInput=document.getElementById("CuotaMensual");
+            const tasa=parseFloat(TasaStr);
+            const plazo=parseFloat(plazoStr);
+            if(!isNaN(monto) && !isNaN(tasa) && !isNaN(plazo)  && plazo>0){
+                const r=(tasa/12)/100;
+                const Cuota=monto*(r*Math.pow(1+r, plazo))/(Math.pow(1+r,plazo)-1)
+                cuotaInput.value=Cuota.toFixed(2);
+                return true
+            } else{
+                cuotaInput.value = "";
+                return false;
+            }
+        }
+        //
+        // 9 logica para levantar filtro
+        function leerFiltros() {
+            return {
+                Estado:      $("#Estado").val(),
+                FechaInicio: $("#FechaInicio").val(),
+                FechaFin:    $("#FechaFin").val()
+            };
+        }
+          const qs = obj => $.param(obj);   // "Estado=Activo&FechaInicio=2025-06-01..."
+          /*============================================================
+          2. Visualizar  →  nueva pestaña
+          ============================================================ */
+        $(document).on("click", "#btnVisualizar", function () {
+
+            const filtros = leerFiltros();
+
+            // ↴ Ajusta la acción Razor que devolverá la vista HTML del reporte
+              const url = '@Url.Action("ReporteContratosPdf", "Reportes")' + "?" + qs(filtros);
+
+            window.open(url, "_blank");       // pestaña / ventana nueva
+            // $("#modalGlobal").modal("hide");  // cierra modal
         });
+
+        /* ============================================================
+        3. Exportar Excel / PDF (se mantienen igual)
+        ============================================================ */
+        $(document).on("click", "#btnExcel, #btnPdf", function (e) {
+            e.preventDefault();
+
+            const filtros = leerFiltros();
+            const base   = this.id === "btnExcel"
+                         ? '@Url.Action("ExportarExcelContrato", "Reportes")'
+                               : '@Url.Action("ReporteContratosPdfDowload", "Reportes")';
+
+            // Excel: descarga en la misma pestaña.  PDF: abre nueva.
+            if (this.id === "btnPdf") {
+                window.open(base + "?" + qs(filtros), "_blank");
+            } else {
+                window.location.href = base + "?" + qs(filtros);
+            }
+
+            $("#modalGlobal").modal("hide");
+        });
+        //fin
+      });
     </script>
 }

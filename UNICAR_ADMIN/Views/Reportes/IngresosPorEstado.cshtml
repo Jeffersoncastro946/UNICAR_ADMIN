@@ -1,0 +1,194 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.Reportes.ReporteFinalizadosViewModel
+@using UNICAR_ADMIN.Models.DTOS.Reportes
+@{
+   
+
+    DateTime fechaInicio = (DateTime)(ViewBag.FechaInicio ?? DateTime.Today.AddMonths(-1));
+    DateTime fechaFin = (DateTime)(ViewBag.FechaFin ?? DateTime.Today);
+    var headerVm = (ReporteHeaderViewModel)ViewData["Header"]!;
+}
+
+@section Styles {
+    <style>
+        /* ==== TABLAS DE REPORTE ==== */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: .5rem 0;
+            font-size: 11pt;
+        }
+
+            .report-table th,
+            .report-table td {
+                padding: 7px 9px;
+                border: 1px solid #d9dce6;
+            }
+
+            .report-table thead th {
+                background: #6639b3;
+                color: #fff;
+                font-size: .85rem;
+                font-weight: 600;
+                text-align: center;
+                border-bottom: 4px solid #ec4899;
+            }
+
+            .report-table tbody tr:nth-child(even) {
+                background: #f7f8fc;
+            }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-start {
+            text-align: left;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+    </style>
+
+}
+
+<div class="container py-4">
+    @* Header parcial *@
+    @await Html.PartialAsync("_ReporteHeaderGeneral", headerVm)
+
+    @* 2) Formulario de filtros (inputs + botón alineados) *@
+    <form method="get" class="row g-2 align-items-end mb-4">
+        <div class="col-auto">
+            <label for="fechaInicio" class="form-label">Desde:</label>
+            <input type="date"
+                   id="fechaInicio"
+                   name="fechaInicio"
+                   class="form-control"
+                   value="@(fechaInicio.ToString("yyyy-MM-dd"))" />
+        </div>
+        <div class="col-auto">
+            <label for="fechaFin" class="form-label">Hasta:</label>
+            <input type="date"
+                   id="fechaFin"
+                   name="fechaFin"
+                   class="form-control"
+                   value="@(fechaFin.ToString("yyyy-MM-dd"))" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+    </form>
+
+    <!-- KPI Dinámico -->
+    @* 3) KPI con color corporativo *@
+    <div id="kpiTotal"
+         class="p-3 mb-5 text-center rounded"
+         style="background: #6639B3; color: #FFF; font-size: 1.75rem; border-radius: 32PX; border: 1px solid #ccc; padding: 16px;">
+        Total Finalizados: <strong>Cargando…</strong>
+    </div>
+
+    @* 4) Gráfico + mini‑tabla estilizada *@
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <canvas id="chartFinalizados" height="200"></canvas>
+        </div>
+        <div class="col-md-4">
+            <table id="miniTabla" 
+                   class="report-table  table-sm text-center"
+                   style="border-collapse: collapse;">
+                <thead style="background:#6639b3; color:#fff;">
+                    <tr>
+                        <th>Mes</th>
+                        <th>Ingreso (L)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @* se llenará vía JS *@
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td style="border-top:2px solid #5d0c5d;"><strong>Total</strong></td>
+                        <td style="border-top:2px solid #5d0c5d;">
+                            <strong id="miniTotal">—</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (async function(){
+            // 1) Construir URL JSON con mismos GET
+            const urlJson = '@Url.Action("VentasPorEstadoJson", "Reportes")' + location.search;
+
+            // 2) Fetch JSON
+            const resp = await fetch(urlJson);
+            const { totalFinalizados, meses } = await resp.json();
+
+            // 3) Rellenar KPI
+            document.getElementById('kpiTotal').innerHTML =
+                `Total Finalizados: <strong>${
+                  totalFinalizados.toLocaleString(undefined,{
+                    style:'currency', currency:'HNL'
+                  })
+                }</strong>`;
+
+            // 4) Rellenar mini‑tabla
+            const tbody = document.querySelector('#miniTabla tbody');
+            meses.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td>${m.mes}</td>
+                  <td>${m.monto.toLocaleString(undefined,{
+                    style:'currency', currency:'HNL'
+                  })}</td>`;
+                tbody.appendChild(tr);
+            });
+            // poner total en footer
+            document.getElementById('miniTotal').textContent =
+                totalFinalizados.toLocaleString(undefined,{
+                  style:'currency', currency:'HNL'
+                });
+
+            // 5) Dibujar LINE CHART
+            const labels = meses.map(m => m.mes),
+                  data   = meses.map(m => m.monto),
+                  ctx    = document.getElementById('chartFinalizados')
+                             .getContext('2d');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Ingresos',
+                        data,
+                        fill: false,
+                        tension: 0.3,
+                        borderColor: '#28a745',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#28a745',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: { display:true, text:'Mes' },
+                            grid:  { color:'rgba(230,230,250,0.5)' }
+                        },
+                        y: {
+                            beginAtZero:true,
+                            title:{ display:true, text:'Lempiras (L)' },
+                            grid: { color:'rgba(230,230,250,0.5)' }
+                        }
+                    },
+                    plugins:{ legend:{ display:false } }
+                }
+            });
+        })();
+    </script>
+}

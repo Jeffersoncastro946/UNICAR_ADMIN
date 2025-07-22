@@ -144,67 +144,63 @@
                     .addClass('bi-dash-circle-fill text-danger');
                 },
                 error: function () {
-                  row.child('<div class="p-2 text-danger">Error cargando contratos.</div>').show();
+                  row.child('<div class="p-2 text-danger">Cliente sin contratos.</div>').show();
                 }
               });
             }
           });
 
-          //capturar los el modl de crear
+        //
+                $(document).on('submit', '#FormCrear', function (e) {
+            e.preventDefault();
+            const $form = $(this);
 
-             $(document).on('submit', '#FormCrear', function (e) {
-              e.preventDefault();
+            // Validación cliente antes de enviar
+            if (!$form.valid()) return false;
 
-              const $form = $(this);
-              const url   = $form.attr('action');
-              const data  = new FormData(this);
-              debugger;
-              $.ajax({
+            const url = $form.attr('action');
+            const data = new FormData(this);
+
+            $.ajax({
                 url,
                 method: 'POST',
                 data,
                 contentType: false,
                 processData: false,
                 success(res) {
-                  // Si viene JSON con éxito
-                  if (res && res.success) {
-                    // 1) Cierra el modal
-                    $('#modalGlobal').modal('hide');
-
-                    // 2) Recarga tu DataTable sin resetear paginación
-                    $('#Tabla').DataTable().ajax.reload(null, false);
-
-                    // 3) Muestra alerta
-                    showAlert('success', res.message);
-                  }
-                  else if (res && !res.success) {
-                      // Respuesta JSON con success = false
-                     // 2) Recarga tu DataTable sin resetear paginación
-                    $('#modalGlobal').modal('hide');
-                    $('#Tabla').DataTable().ajax.reload(null, false);
-                      showAlert('danger', res.message);  // 'danger', no 'error'
+                    // Si es string (HTML) => hay errores de validación (regresa el PartialView)
+                    if (typeof res === 'string') {
+                        $('#modalGlobal .modal-body').html(res);
+                        $.validator.unobtrusive.parse('#modalGlobal .modal-body');
                     }
-                  else {
-                    // Si devolvieron el partial con errores (HTML), lo inyectas
-                    $('#modalGlobal .modal-body').html(res);
-                    // Reactiva validación unobtrusive en el nuevo HTML
-                    $.validator.unobtrusive.parse('#modalGlobal .modal-body');
-                  }
+                    // Si es objeto JSON => es respuesta exitosa o con error
+                    else if (res && res.success) {
+                        $('#modalGlobal').modal('hide');
+                        $('#Tabla').DataTable().ajax.reload(null, false);
+                        showAlert('success', res.message);
+                    }
+                    else {
+                        // $('#modalGlobal').modal('hide');
+                        // $('#Tabla').DataTable().ajax.reload(null, false);
+                        showAlert('danger', res.message || 'Ocurrió un error');
+                    }
                 },
                 error(xhr) {
-                  // Si falla el servidor
-                  const msg = xhr.responseJSON?.message || 'Error inesperado en el servidor';
-                  showAlert('danger', msg);
+                    const msg = xhr.responseJSON?.message || 'Error inesperado en el servidor';
+                    showAlert('danger', msg);
                 }
-              });
             });
-          //fin de crear
+        });
+
+
+        //
 
 
             //capturar los el modl de editar
             $(document).on('submit', '#FormEditar', function (e) {
               e.preventDefault();
               const $form = $(this);
+              if (!$form.valid()) return false; // ✅ Validar antes de AJAX
               const url   = $form.attr('action');
               const data  = new FormData(this);
               const $btn = $form.find('#btnEditarCliente');

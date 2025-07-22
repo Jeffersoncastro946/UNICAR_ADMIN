@@ -1,0 +1,150 @@
+﻿@using UNICAR_ADMIN.Models.DTOS.Reportes
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var agrup = (ViewBag.Agrupacion as string ?? "mes").ToLower();
+    var headerVm = (ReporteHeaderViewModel)ViewData["Header"]!;
+}
+@section Styles {
+ 
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            font-size: 15px; /* tamaño base más grande */
+            color: #222;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: .5rem 0;
+            border: 1px solid #d9dce6;
+            font-size: 15px; /* tamaño de fuente igual que el body */
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 11px 16px;   /* más espacio */
+            border: 1px solid #d9dce6;
+            vertical-align: middle;
+        }
+
+        .report-table thead th {
+            background: #6639b3;
+            color: #fff;
+            font-size: 17px;      /* encabezado más grande */
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 4px solid #ec4899;
+            letter-spacing: 0.5px;
+        }
+
+        .report-table tbody tr:nth-child(even) {
+            background: #f7f8fc;
+        }
+
+        .report-table td.text-end, .report-table th.text-end {
+            text-align: right;
+        }
+        .report-table td.text-center, .report-table th.text-center {
+            text-align: center;
+        }
+        .report-table td.text-start, .report-table th.text-start {
+            text-align: left;
+        }
+    </style>
+}
+
+<div class="container py-4">
+    @* 1) Encabezado parcial *@
+    @await Html.PartialAsync("_ReporteHeaderGeneral", headerVm)
+
+    @* 2) Selector de agrupación *@
+    <div class="mb-3">
+        <label class="me-2">Agrupar por:</label>
+        <select id="selAgrup" class="form-select w-auto d-inline-block">
+            <option value="mes">Mes</option>
+            <option value="anio">Año</option>
+        </select>
+    </div>
+
+    @* 3) Gráfico + mini‑tabla *@
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <canvas id="ventasChart" style="height:300px;"></canvas>
+        </div>
+        <div class="col-md-4">
+            <table id="miniTabla" class="report-table">
+                <thead>
+                    <tr>
+                        <th class="text-center">@((agrup == "anio") ? "Año" : "Mes")</th>
+                        <th class="text-center">Ventas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @* Se llenará con JS *@
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (async function(){
+          // 1) Inicializa select
+          const agrup = '@agrup';
+          const sel   = document.getElementById('selAgrup');
+          sel.value   = agrup;
+          sel.onchange = () => {
+            location.href = '@Url.Action("VentasPorPeriodo", "Reportes")'
+                             + '?agrupacion=' + sel.value;
+          };
+
+          // 2) Consume JSON
+          const resp = await fetch(
+            '@Url.Action("VentasPorPeriodoJson", "Reportes")'
+            + '?agrupacion=' + agrup
+          );
+          const data = await resp.json(); // [{Periodo,contador},...]
+
+          // 3) Rellena mini‑tabla
+          const tbody = document.querySelector('#miniTabla tbody');
+          data.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="text-center">${item.periodo}</td>
+              <td class="text-center">${item.contador}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          // 4) Dibuja gráfico
+          const labels = data.map(x=>x.periodo),
+                values = data.map(x=>x.contador),
+                ctx    = document.getElementById('ventasChart').getContext('2d');
+
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [{
+                label: 'Ventas',
+                data: values,
+                backgroundColor: labels.map(_=>'rgba(99,57,179,0.3)'),
+                borderColor:    labels.map(_=>'rgba(99,57,179,1)'),
+                borderWidth: 2
+              }]
+            },
+            options: {
+              scales: {
+                x: { title:{ display:true, text: agrup==='anio'?'Año':'Mes' } },
+                y: { beginAtZero:true, title:{ display:true, text:'Ventas' } }
+              },
+              plugins:{ legend:{ display:false } }
+            }
+          });
+        })();
+    </script>
+}

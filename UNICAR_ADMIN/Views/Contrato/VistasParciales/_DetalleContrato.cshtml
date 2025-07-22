@@ -1,0 +1,66 @@
+﻿@model UNICAR_ADMIN.Models.DTOS.ListaVehiculoDTO  
+@{  
+    // Cast seguro de ViewBag.valor a decimal (asumiendo que lo pasaste como tal)  
+    decimal precioVenta = (decimal)(ViewBag.valor ?? 0);  
+    decimal gastos = (decimal)(Model.TotalGastosMantenimientos ?? 0.0); // Conversión explícita de 'double' a 'decimal'  
+
+    // Solución: Convertir 'Model.TotalGastosMantenimientos' a 'decimal' antes de realizar la operación  
+    decimal gananciaDecimal = precioVenta - (Model.Precio + (decimal)(Model.TotalGastosMantenimientos ?? 0.0));  
+    double gananciaNeta = (double)gananciaDecimal;  
+
+    double porcentajeGanancia = gastos > 0 ? ((double)gananciaDecimal / (double)gastos) * 100 : 0;  
+
+    string claseGanancia = gananciaNeta >= 0 ? "text-success" : "text-danger";  
+    string clasePorcentaje =  
+        porcentajeGanancia >= 20 ? "text-success" :  
+        porcentajeGanancia >= 0 ? "text-warning" :  
+        "text-danger";  
+}  
+
+<div class="p-2">  
+    <h6 class="fw-bold text-primary">Vehículos Asociados</h6>  
+
+    @if (Model != null)  
+    {  
+        <div class="table-responsive">  
+            <table class="table table-sm table-bordered mb-2 text-center align-middle">  
+                <thead class="table-light">  
+                    <tr>  
+                        <th>Marca</th>  
+                        <th>Modelo</th>  
+                        <th>Año</th>  
+                        <th>Color</th>  
+                        <th>VIN</th>  
+                        <th>Total Reparaciones</th>  
+                    </tr>  
+                </thead>  
+                <tbody>  
+
+                    <tr>  
+                        <td>@Model.Marca</td>  
+                        <td>@Model.Modelo</td>  
+                        <td>@Model.Anio</td>  
+                        <td>@Model.Color</td>  
+                        <td>@Model.Vin</td>  
+                        <td>@Model.TotalGastosMantenimientos</td>  
+                    </tr>  
+
+                </tbody>  
+            </table>  
+        </div>  
+    }  
+    else  
+    {  
+        <p class="text-muted">Este contrato no tiene vehículos asociados.</p>  
+    }  
+
+    <h6 class="fw-bold mt-3 text-primary">Información Adicional</h6>  
+    <p>  
+        <strong>Ganancia neta (Venta - Costos):</strong>  
+        <span class="@claseGanancia">@gananciaNeta.ToString("C")</span>  
+    </p>  
+    <p>  
+        <strong>% de ganancia neta (Venta/Costos)*100:</strong>  
+        <span class="@claseGanancia">@porcentajeGanancia.ToString("N2")%</span>  
+    </p>  
+</div>
