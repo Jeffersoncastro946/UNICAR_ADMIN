@@ -54,6 +54,12 @@ namespace UNICAR_ADMIN.Controllers
             return View(catalogo);
         }
 
+        public async Task<IActionResult> DetalleVehiculoAsync(int idVehiculo)
+        {
+            var vehiculo = await RepoVehiculo.ObtenerDetalleVehiculo(idVehiculo);   
+
+            return PartialView("_vehiculoDetalle", vehiculo);
+        }
         public IActionResult Privacy()
         {
             return View();

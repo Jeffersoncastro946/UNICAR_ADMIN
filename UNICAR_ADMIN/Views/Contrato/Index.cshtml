@@ -33,7 +33,7 @@
             <thead>
                 <tr>
                     <th></th> <!-- Para el icono de expandir o detalles -->
-                    <th>#</th>
+                    <th>Corr</th>
                     <th>Cliente</th>
                     <th>Tipo Venta</th>
                     @* <th>Vehículo</th> *@
@@ -75,7 +75,16 @@
                         data: null,
                         defaultContent: '<i class="bi bi-plus-circle-fill text-success fs-5"></i>',
                     },
-                    { data: "contratoId" },
+                      { data: null,
+                            render: function(data, type, row, meta){
+                              const sufijo = (/finan/i.test(row.tipoVenta) ? "F" : "C"); // Financiada->F, Contado->C
+                              const code = `C${sufijo}${row.contratoId}`;
+
+                              // Muestra el código, pero usa el ID para ordenar; exporta el código
+                              if (type === "display" || type === "filter" || type === "export") return code;
+                              return row.contratoId; // sort / type === 'sort'
+                          },
+                      },
                     { data: "cliente" },
                     { data: "tipoVenta" },
                     {
@@ -132,11 +141,18 @@
                     },
                 ],
                 //col
-                columnDefs: [
-                {
-                    targets: [1, 6], // Índices de columnas que querés centrar (0 = ID, 3 = Precio)
-                    className: 'text-center'
-                } ],
+                    columnDefs: [
+                        // centra columnas
+                        { targets: [1, 6], className: 'text-center' },
+
+                        // prioridades responsive (1 = más importante)
+                        { responsivePriority: 1, targets: 1 },   // Corr
+                        { responsivePriority: 2, targets: 2 },   // Cliente
+                        { responsivePriority: 3, targets: -1 },  // Acciones
+
+                        // estas se pliegan al detalle cuando no quepan
+                        { className: 'none', targets: [4, 5, 6, 7, 8] } // Precio, Pagado, Saldo, Estado, Último Pago
+                      ],
                 responsive: true,
                 language: {
                     lengthMenu: "Mostrar _MENU_ registros por página",

@@ -14,7 +14,7 @@
             <thead>
                 <tr>
                     <th></th> <!-- Para el icono de expandir o detalles -->
-                    <th>#</th>
+                    <th>Corr</th>
                     <th>Cliente</th>
                     <th>Tipo Venta</th>
                     <th>Precio Venta</th>
@@ -44,7 +44,16 @@
                         data: null,
                         defaultContent: '<i class="bi bi-plus-circle-fill text-success fs-5"></i>',
                     },
-                    { data: "contratoId" },
+                                          { data: null,
+                          render: function(data, type, row, meta){
+                            const sufijo = (/finan/i.test(row.tipoVenta) ? "F" : "C"); // Financiada->F, Contado->C
+                            const code = `C${sufijo}${row.contratoId}`;
+
+                            // Muestra el código, pero usa el ID para ordenar; exporta el código
+                            if (type === "display" || type === "filter" || type === "export") return code;
+                            return row.contratoId; // sort / type === 'sort'
+                        },
+                    },
                     { data: "cliente" },
                     { data: "tipoVenta" },
                     {

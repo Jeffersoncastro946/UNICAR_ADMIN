@@ -64,15 +64,16 @@ namespace UNICAR_ADMIN.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "Por favor ingresa tu correo")]
+            [EmailAddress(ErrorMessage = "El formato de correo no es valido")]
             public string Email { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
+             
+            [Required(ErrorMessage = "¿Olvidaste la contraseña?")]
             [DataType(DataType.Password)]
             public string Password { get; set; }
 
@@ -80,7 +81,7 @@ namespace UNICAR_ADMIN.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Display(Name = "Remember me?")]
+            [Display(Name = "¿te recordamos?")]
             public bool RememberMe { get; set; }
         }
 
@@ -123,12 +124,12 @@ namespace UNICAR_ADMIN.Areas.Identity.Pages.Account
                 }
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning("User account locked out.");
+                    _logger.LogWarning("Cuenta de usuario bloqueada.");
                     return RedirectToPage("./Lockout");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(string.Empty, "Intento de inicio de sesión inválido.");
                     return Page();
                 }
             }

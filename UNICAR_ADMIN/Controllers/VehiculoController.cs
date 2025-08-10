@@ -254,36 +254,33 @@ namespace UNICAR_ADMIN.Controllers
         public async Task<IActionResult> CrearReparacion(ReparacionesDTO reparacionDto)
         {
 
-            // 1) Validación de DataAnnotations
-            if (!ModelState.IsValid)
-            {
-                //reparacion.ListaVehiculosVin = await Repositorio.ObtenerVehiculoVIn();
-                return PartialView("~/Views/Vehiculo/vistasParciales/_EditarReparacion.cshtml", reparacionDto);
-            }
-
+           
             // 2) Validación de negocio: fechas
             if (reparacionDto.FechaFin < reparacionDto.FechaInicio)
             {
               
-                ModelState.AddModelError(
-                  nameof(reparacionDto.FechaFin),
-                  "La fecha de fin no puede ser anterior a la fecha de inicio."
-                );
-                return PartialView("~/Views/Vehiculo/vistasParciales/_EditarReparacion.cshtml", reparacionDto);
+                //ModelState.AddModelError(
+                //  nameof(reparacionDto.FechaFin),
+                //  "La fecha de fin no puede ser anterior a la fecha de inicio."
+                //);
+                TempData["ErrorMessage"] = "La fecha de fin no puede ser anterior a la fecha de inicio.";
+                reparacionDto.ListaVehiculosVin = await Repositorio.ObtenerVehiculoVIn();
+                return View(reparacionDto);
             }
 
 
             try
             {
                 // 3) Todo OK → guardamos y devolvemos JSON
-                await Repositorio.EditarReparacion(reparacionDto, User.Identity?.Name ?? "desconocido");
-                return Json(new { success = true, message = "Reparación editada correctamente." });
+                await Repositorio.CrearReparacion(reparacionDto, User.Identity?.Name ?? "desconocido");
+                TempData["SuccessMessage"] = "Reparación creada correctamente.";
+                return RedirectToAction("ListarReparaciones");
             }
             catch (Exception ex)
             {
 
                 TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction("ListarReparaciones"); ;
+                return RedirectToAction("ListarReparaciones"); 
             }
         }
 

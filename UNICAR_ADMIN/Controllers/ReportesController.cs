@@ -289,7 +289,7 @@ namespace UNICAR_ADMIN.Controllers
         public async Task<IActionResult> VehiculosRezagoJson()
         {
             var vm = await reportesServices.ObtenerVehiculosRezagadosAsync();
-            vm
+           
             return Json(vm);
         }
 

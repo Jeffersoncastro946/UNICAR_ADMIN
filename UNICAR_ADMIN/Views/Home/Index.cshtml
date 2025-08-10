@@ -40,7 +40,10 @@
 
                 <!-- Botón en columna separada -->
                 <div class="col-md-2 text-center">
-                    <a href="#" class="btn btn-outline-primary mt-4 px-4">Ver más</a>
+                    <button class="btn btn-outline-primary mt-4 px-4 btnVerMas"
+                            data-id="@vehiculo.VehiculoId">
+                        Ver más
+                    </button>
                 </div>
             </div>
         </div>
@@ -58,4 +61,23 @@
             _ => "text-secondary"                 // gris por defecto
         };
     }
+
+
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // click para abririr modal
+             $(".btnVerMas").on("click", function (e) {
+                e.preventDefault();
+                var vehiculoId = $(this).data("id");
+                console.log(vehiculoId);
+                // var url = "/Home/DetalleVehiculo?id=" + vehId
+                 var url = "/Home/DetalleVehiculo?idVehiculo=" + vehiculoId;
+                 console.log(url)
+                abrirModal("lg", "Detalle Vehiculo", url);
+            });
+        });
+    </script>
 }
