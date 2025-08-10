@@ -1,7 +1,8 @@
 ﻿@model IEnumerable<UNICAR_ADMIN.Models.DTOS.ClienteDto>
-
+@using Microsoft.AspNetCore.Identity
 @{
     ViewData["Title"] = "Lista de Clientes";
+    var user = User.IsInRole("Admin");
 }
 
 
@@ -38,6 +39,7 @@
 @section Scripts {
     <script>
         $(function () {
+            const esAdmin = @User.IsInRole("Admin").ToString().ToLower(); // true o false
           const tabl = $('#Tabla').DataTable({
             ajax: {
               url: '@Url.Action("ObtenerClientes", "Cliente")',
@@ -55,21 +57,27 @@
               { data: d => d.rtn },
               { data: d => d.telefono },
               { data: d => d.direccion },
-              {
-                data: d => d.clienteId,
-                orderable: false,
-                searchable: false,
-                className: 'text-center',
-                render: id => `
-                  <button class="btn btn-sm btn-warning me-1"
-                    onclick="abrirModal('md','Editar Cliente','/Cliente/EditarCliente/${id}')">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-danger"
-                    onclick="abrirModal('sm','Eliminar Cliente','/Cliente/BorrarCliente/${id}')">
-                    <i class="bi bi-trash"></i>
-                  </button>`
-              }
+                     {
+          data: d => d.clienteId,
+          orderable: false,
+          searchable: false,
+          className: 'text-center',
+          render: function (id, type, row) {
+            if (esAdmin === 'true') {
+              return `
+                <button class="btn btn-sm btn-warning me-1"
+                  onclick="abrirModal('md','Editar Cliente','/Cliente/EditarCliente/${id}')">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-danger"
+                  onclick="abrirModal('sm','Eliminar Cliente','/Cliente/BorrarCliente/${id}')">
+                  <i class="bi bi-trash"></i>
+                </button>`;
+            } else {
+              return `<span class="badge bg-warning text-dark">Sin permisos</span>`; // No muestra botones si no es admin
+            }
+          }
+        }
             ],
             responsive: true,
             language: {

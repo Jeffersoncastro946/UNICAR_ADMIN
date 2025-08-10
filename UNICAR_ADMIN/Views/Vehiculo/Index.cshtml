@@ -138,7 +138,7 @@
 
     <script>
         $(function () {
-
+             const esAdmin = @User.IsInRole("Admin").ToString().ToLower(); // true o false
             //inicailizar drops
             $('#ProveedorId').select2({
               dropdownParent: $('#modalGlobal'),
@@ -171,21 +171,28 @@
                             ? '<i class="bi bi-check-circle-fill text-success"></i>'
                             : '<i class="bi bi-x-circle-fill text-danger"></i>'
                     },
-                    {
-                        data: d => d.vehiculoId,
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center',
-                        render: id => `
-                             <a href="/Vehiculo/EditarVehiculo/${id}" class="btn btn-sm btn-warning me-1">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                                  <button type="button"
-                    class="btn btn-sm btn-danger"
-                    onclick="abrirModal('sm','Eliminar Vehículo','/Vehiculo/BorrarVehiculo/${id}')">
-              <i class="bi bi-trash"></i>
-            </button>`
-                    }
+                            {
+            data: d => d.vehiculoId,
+            orderable: false,
+            searchable: false,
+            className: 'text-center',
+            render: function (id, type, row) {
+                if (esAdmin === 'true') {
+                    return `
+                        <a href="/Vehiculo/EditarVehiculo/${id}" class="btn btn-sm btn-warning me-1">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <button type="button"
+                            class="btn btn-sm btn-danger"
+                            onclick="abrirModal('sm','Eliminar Vehículo','/Vehiculo/BorrarVehiculo/${id}')">
+                            <i class="bi bi-trash"></i>
+                        </button>`;
+                } else {
+                    return `<span class="badge bg-warning text-dark">Sin permisos</span>`;
+                }
+            }
+        }
+
                 ],
                 responsive: true,
                 language: {

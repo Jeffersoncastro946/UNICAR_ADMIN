@@ -14,7 +14,7 @@ using UNICAR_ADMIN.Servicios.Vehiculos_Services;
 
 namespace UNICAR_ADMIN.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    
     public class VehiculoController : Controller
     {
         private readonly IRepositorio_Vehiculo Repositorio;

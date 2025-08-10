@@ -61,6 +61,7 @@
                 <ul class="nav nav-pills flex-column">
                     @if (SignInManager.IsSignedIn(User))
                     {
+
                         <!-- Módulo Inicio -->
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-controller="Home" asp-action="Index">
@@ -69,6 +70,7 @@
                             </a>
                         </li>
 
+                      
                         <!-- Módulo Clientes con Submenú -->
                         <li class="nav-item">
                             <a class="nav-link text-white d-flex justify-content-between align-items-center"
@@ -110,13 +112,17 @@
                                             <span class="ms-2 sidebar-text">Listar Vehículos</span>
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                         <li class="nav-item">
                                         <a class="nav-link text-white" asp-controller="Vehiculo" asp-action="IndexVendido">
                                             <i class="bi bi-car-front"></i>
                                             <i class="bi bi-patch-check-fill text-warning"></i>
                                             <span class="ms-2 sidebar-text">Vehículos Vendidos</span>
                                         </a>
                                     </li>
+                                    }
+                                   
                                     <li class="nav-item">
                                         <a class="nav-link text-white" asp-controller="Reportes" asp-action="InventarioVehiculosDisponiblesView">
                                             <i class="bi bi-box""></i>
@@ -159,76 +165,83 @@
                                 </ul>
                             </div>
                         </li>
+                        @if (User.IsInRole("Admin"))
+                        {
 
-                        <!-- Módulo Contratos con Submenú -->
-                        <li class="nav-item">
-                            <a class="nav-link text-white d-flex justify-content-between align-items-center"
-                               data-bs-toggle="collapse" href="#contratoSubmenu" role="button" aria-expanded="false" aria-controls="contratoSubmenu">
-                                <span>
-                                    <i class="bi bi-file-earmark-text"></i>
-                                    <span class="ms-2 sidebar-text">Contratos</span>
-                                </span>
-                                <i class="bi bi-chevron-down small"></i>
-                            </a>
-                            <div class="collapse" id="contratoSubmenu">
-                                <ul class="nav flex-column ms-4">
-                                    <li class="nav-item">
-                                        <a class="nav-link text-white" asp-controller="Contrato" asp-action="Index">
-                                            <i class="bi bi-list"></i>
-                                            <span class="ms-2 sidebar-text">Contratos Activos</span>
-                                        </a>
-                                    </li>
-                                     <li class="nav-item">
-                                        <a class="nav-link text-white" asp-controller="Contrato" asp-action="Index2">
-                                            <i class="bi bi-clock-history"></i>
-                                            <span class="ms-2 sidebar-text">Historial de Contratos</span>
-                                        </a>
-                                    </li>
-                                    
-                                </ul>
-                            </div>
-                        </li>
 
-                         <!-- Módulo Reportes con Submenú -->
-                        <li class="nav-item">
-                            <a class="nav-link text-white d-flex justify-content-between align-items-center"
-                               data-bs-toggle="collapse" href="#ReporteSubmenu" role="button" aria-expanded="false" aria-controls="ReporteSubmenu">
-                                <span>
-                                    <i class="bi bi-file-earmark-bar-graph"></i>
-                                    <span class="ms-2 sidebar-text">Reportes</span>
-                                </span>
-                                <i class="bi bi-chevron-down small"></i>
-                            </a>
-                            <div class="collapse" id="ReporteSubmenu">
-                            <ul class="nav flex-column ms-4">
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Reportes" asp-action="VentasPorPeriodo">
-                                        <i class="bi bi-bar-chart-line"></i>
+                            <!-- Módulo Contratos con Submenú -->
+                            <li class="nav-item">
+                                <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                                data-bs-toggle="collapse" href="#contratoSubmenu" role="button" aria-expanded="false" aria-controls="contratoSubmenu">
+                                    <span>
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        <span class="ms-2 sidebar-text">Contratos</span>
+                                    </span>
+                                    <i class="bi bi-chevron-down small"></i>
+                                </a>
+                                <div class="collapse" id="contratoSubmenu">
+                                    <ul class="nav flex-column ms-4">
+                                        <li class="nav-item">
+                                            <a class="nav-link text-white" asp-controller="Contrato" asp-action="Index">
+                                                <i class="bi bi-list"></i>
+                                                <span class="ms-2 sidebar-text">Contratos Activos</span>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-white" asp-controller="Contrato" asp-action="Index2">
+                                                <i class="bi bi-clock-history"></i>
+                                                <span class="ms-2 sidebar-text">Historial de Contratos</span>
+                                            </a>
+                                        </li>
 
-                                        <span class="ms-2 sidebar-text">Ventas</span>
-                                    </a>
-                                     <a class="nav-link text-white" asp-controller="Reportes" asp-action="IngresosPorEstado">
-                                        <i class="bi bi-bar-chart-line"></i>
-                                        <span class="ms-2 sidebar-text">Ingreso por mes</span>
-                                    </a>
-                                    <a class="nav-link text-white" asp-controller="Reportes" asp-action="ClientesCrecimiento">
-                                        <i class="bi bi-people"></i>
-                                        <span class="ms-2 sidebar-text">Clientes</span>
-                                    </a>
-                                    <a class="nav-link text-white" asp-controller="Reportes" asp-action="VehiculosRezago">
-                                        <i class="bi bi-clock-history"></i>
-                                        <span class="ms-2 sidebar-text">Inventario &gt;90 días</span>
-                                    </a>
-                                    <a class="nav-link text-white" asp-controller="Reportes" asp-action="ReparacionesAlCincuentaPerc">
-                                        <i class="bi bi-tools"></i>
-                                        <span class="ms-2 sidebar-text">Reparaciones Excesivas</span>
-                                    </a>
-                                    
-                                </li>
-                            </ul>
-                        </div>
+                                    </ul>
+                                </div>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
 
-                        </li>
+                            <!-- Módulo Reportes con Submenú -->
+                            <li class="nav-item">
+                                <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                                data-bs-toggle="collapse" href="#ReporteSubmenu" role="button" aria-expanded="false" aria-controls="ReporteSubmenu">
+                                    <span>
+                                        <i class="bi bi-file-earmark-bar-graph"></i>
+                                        <span class="ms-2 sidebar-text">Reportes</span>
+                                    </span>
+                                    <i class="bi bi-chevron-down small"></i>
+                                </a>
+                                <div class="collapse" id="ReporteSubmenu">
+                                    <ul class="nav flex-column ms-4">
+                                        <li class="nav-item">
+                                            <a class="nav-link text-white" asp-controller="Reportes" asp-action="VentasPorPeriodo">
+                                                <i class="bi bi-bar-chart-line"></i>
+
+                                                <span class="ms-2 sidebar-text">Ventas</span>
+                                            </a>
+                                            <a class="nav-link text-white" asp-controller="Reportes" asp-action="IngresosPorEstado">
+                                                <i class="bi bi-bar-chart-line"></i>
+                                                <span class="ms-2 sidebar-text">Ingreso por mes</span>
+                                            </a>
+                                            <a class="nav-link text-white" asp-controller="Reportes" asp-action="ClientesCrecimiento">
+                                                <i class="bi bi-people"></i>
+                                                <span class="ms-2 sidebar-text">Clientes</span>
+                                            </a>
+                                            <a class="nav-link text-white" asp-controller="Reportes" asp-action="VehiculosRezago">
+                                                <i class="bi bi-clock-history"></i>
+                                                <span class="ms-2 sidebar-text">Inventario &gt;90 días</span>
+                                            </a>
+                                            <a class="nav-link text-white" asp-controller="Reportes" asp-action="ReparacionesAlCincuentaPerc">
+                                                <i class="bi bi-tools"></i>
+                                                <span class="ms-2 sidebar-text">Reparaciones Excesivas</span>
+                                            </a>
+
+                                        </li>
+                                    </ul>
+                                </div>
+
+                            </li>
+                        }
                         <!-- Agregar más módulos según sea necesario -->
                     }
                 </ul>
